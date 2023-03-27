@@ -1,0 +1,8 @@
+# Testing and code checking
+pytest
+python-ta~=2.4.0
+
+# Graphics and data visualization
+beautifulsoup4==4.11.2
+lxml
+requests~=2.28.2
