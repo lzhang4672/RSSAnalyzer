@@ -62,7 +62,7 @@ def get_articles(query: str, number_of_pages: int) -> None:
 
 
 @check_contracts
-def get_texts_from_article(url: str, keywords: list[str]) -> dict:
+def get_texts_from_article(url: str) -> dict:
     """
 
     :param url:
