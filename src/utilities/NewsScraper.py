@@ -1,5 +1,6 @@
 import random
 
+import bs4
 from python_ta.contracts import check_contracts
 from bs4 import BeautifulSoup
 import requests
@@ -17,6 +18,8 @@ SEARCH_PARAMS = {
 }
 NEWS_URL = "https://www.google.com/search"
 WEB_TIMEOUT = 30
+
+BS4OBJECT = bs4.element.NavigableString | bs4.element.Tag
 
 
 @check_contracts
@@ -59,11 +62,11 @@ class NewsScraper:
             page_num += 1
 
     @staticmethod
-    def get_texts_containing(url: str, tickers: list) -> list[str]:
+    def get_texts_containing(url: str, keywords: list[str]) -> list[str]:
         """
-
+        Returns a list of strings which are the passages in the url that contain words found inside keywords list
         :param url:
-        :param tickers:
+        :param keywords:
         :return:
         """
         page = requests.get(url, headers=HEADERS)
@@ -76,7 +79,39 @@ class NewsScraper:
 
         for text in content:
             string = str(text)
-            for ticker in tickers:
-                if ticker in string:
+            for word in keywords:
+                if word in string:
                     texts_so_far.append(get_children_as_str(text))
+
         return texts_so_far
+
+    @staticmethod
+    def get_children_as_str(obj: BS4OBJECT) -> str:
+        """
+        Helper method for get_texts_containing
+        Returns a string that concatenates the string elements inside the HTML tags based on the object passed in
+
+        The bs4 object is a tree with a representation structure of the HTML of the website. This function will
+        concatenate the elements inside the children of the object
+        (ie. for <p>hello <strong>world</strong></p>, the object is the entire <p>, the children is the <strong> elem.)
+
+        :param obj: A bs4 object that represents the HTML corresponding to a website
+        :return:
+        """
+        if isinstance(obj, bs4.NavigableString):
+            return remove_non_ascii(str(obj))
+        else:
+            cur_str = ''
+            for child in obj.children:
+                cur_str += get_children_as_str(child)
+            return cur_str
+
+    @staticmethod
+    def remove_non_ascii(string: str) -> str:
+        """
+        Helper method for get_children_as_str, and for handling strings
+        Strips non ascii values from the given string
+        :param string: the string to remove non ascii from
+        :return: returns new string with only ascii values
+        """
+        return ''.join([i if ord(i) < 128 else '' for i in string])
