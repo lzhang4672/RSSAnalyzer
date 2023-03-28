@@ -64,7 +64,7 @@ def get_articles(query: str, number_of_pages: int) -> None:
 @check_contracts
 def get_texts_from_article(url: str, keywords: list[str]) -> dict:
     """
-    Returns a list of strings which are the passages in the url that contain words found inside keywords list
+
     :param url:
     :param keywords:
     :return:
@@ -75,13 +75,12 @@ def get_texts_from_article(url: str, keywords: list[str]) -> dict:
 
     tags = {'p'}
     content = soup.find_all(tags)
-    texts = {'title': soup.find('title'),
-             'texts': []}
+    website_info = {'title': soup.find('title'), 'texts': []}
 
     for passage in content:
-        texts_so_far.append(get_children_as_str(passage))
+        website_info['texts'].append(get_children_as_str(passage))
 
-
+    return website_info
 
 
 @check_contracts
