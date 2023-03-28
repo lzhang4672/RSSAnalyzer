@@ -75,10 +75,12 @@ def get_texts_from_article(url: str) -> dict:
 
     tags = {'p'}
     content = soup.find_all(tags)
-    website_info = {'title': soup.find('title'), 'texts': []}
+    website_info = {'title': soup.find('title').string, 'texts': []}
 
     for passage in content:
-        website_info['texts'].append(get_children_as_str(passage))
+        string = get_children_as_str(passage)
+        if len(string.split()) > 1:  # has more than just 1 word
+            website_info['texts'].append(string)
 
     return website_info
 
