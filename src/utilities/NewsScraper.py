@@ -57,3 +57,26 @@ class NewsScraper:
             else:
                 break
             page_num += 1
+
+    @staticmethod
+    def get_texts_containing(url: str, tickers: list) -> list[str]:
+        """
+
+        :param url:
+        :param tickers:
+        :return:
+        """
+        page = requests.get(url, headers=HEADERS)
+
+        soup = BeautifulSoup(page.content, 'html.parser')
+
+        texts_so_far = []
+        tags = {'p'}
+        content = soup.find_all(tags)
+
+        for text in content:
+            string = str(text)
+            for ticker in tickers:
+                if ticker in string:
+                    texts_so_far.append(get_children_as_str(text))
+        return texts_so_far
