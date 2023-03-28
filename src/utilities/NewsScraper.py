@@ -10,16 +10,19 @@ from bs4 import BeautifulSoup
 import requests
 import time
 
-# constants
+# == CONSTANTS ==
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                   "Chrome/100.0.4896.88 Safari/537.36"
 }
+TRUSTED_SOURCES = ["Benzinga", "Seeking Alpha", "Yahoo Finance", "Barron's", "MarketBeat", "TipRanks",
+                   "InvestorsObserver", ]
 SEARCH_PARAMS = {
     "hl": "en-US",  # language
     "gl": "US",  # country of the search, US -> USA
     "ceid": "US:en",
-    "start": 10
+    "start": 10,
+    "tbm": "nws",
 }
 NEWS_URL = "https://www.google.com/search"
 WEB_TIMEOUT = 30
@@ -28,37 +31,41 @@ BS4OBJECT = bs4.element.NavigableString | bs4.element.Tag
 
 
 @check_contracts
-def get_articles(query: str, number_of_pages: int) -> None:
-    """
+def get_articles(query: str, number_of_articles: int) -> list[str]:
+    """Returns a list of article links as a string in a list.
 
-    :param query:
-    :param number_of_pages:
+    Preconditions:
+        - query != ''
+        - 0 < number_of_articles
+
     """
-    page_num = 0
+    articles = []
+    number_of_articles_so_far = 0
     search_params = SEARCH_PARAMS
     # configure search params
     search_params["q"] = query + " stock"
-    while page_num < number_of_pages:
+    while number_of_articles_so_far < number_of_articles:
         # sleep for an arbitrary amount to avoid rate limiting
         time.sleep(random.uniform(0.25, 1))
-        html = requests.get(NEWS_URL, params=search_params, headers=HEADERS, timeout=30)
+        try:
+            # try to send a request and retrieve the articles from google news
+            html = requests.get(NEWS_URL, params=search_params, headers=HEADERS, timeout=30)
+        except requests.exceptions.RequestException as e:
+            # something went wrong so abort the program
+            raise SystemExit(e)
+        # parse the html using beautifulsoup
         soup = BeautifulSoup(html.text, "lxml")
         for result in soup.select(".WlydOe"):
-            source = result.select_one(".NUnG9d").text
-            title = result.select_one(".mCBkyc").text
-            link = result.get("href")
-            try:
-                snippet = result.select_one(".GI74Re").text
-            except AttributeError:
-                snippet = None
-            date = result.select_one(".ZE0LJd").text
-
-            print(source, title, link, snippet, date, sep='\n', end='\n\n')
+            # get the article link by retrieving href tags.
+            article_link = result.get("href")
+            articles += [article_link]
+            number_of_articles_so_far += 1
         if soup.select_one('.BBwThe'):
             search_params["start"] += 10
         else:
             break
-        page_num += 1
+
+    return articles
 
 
 @check_contracts
