@@ -14,4 +14,7 @@ class StockInfo:
     tickers: dict[str, Ticker]
     def __init__(self, csv: str):
         with open(csv) as f:
-            reader =
+            next(f)
+            reader = {ticker[0]: Ticker(ticker[0], ticker[1], ticker[2], int(ticker[3])) for ticker in f}
+            self.tickers = reader
+
