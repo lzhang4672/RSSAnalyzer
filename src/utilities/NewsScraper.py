@@ -27,7 +27,7 @@ SEARCH_PARAMS = {
 NEWS_URL = "https://www.google.com/search"
 WEB_TIMEOUT = 30
 
-BS4OBJECT = bs4.element.NavigableString | bs4.element.Tag
+BS4OBJECT =
 
 
 @check_contracts
@@ -69,20 +69,29 @@ def get_articles(query: str, number_of_articles: int) -> list[str]:
 
 
 @check_contracts
-def get_texts_from_article(url: str) -> dict:
+def get_texts_from_article(url: str) -> dict[str, str | list[str]]:
     """
+    Returns a dictionary specifying the title and texts in the article (two keys in the dictionary)
+    Texts will be given in as a list of strings, and only <p> tags will be scraped to avoid too many texts. Note that
+    any piece of text with only one word in it will NOT be included
 
-    :param url:
-    :param keywords:
-    :return:
+    If this functions fails to fetch the url, an exception will be thrown
+
+    Preconditions:
+        - url must be a legal url
     """
-    page = requests.get(url, headers=HEADERS)
+    try:
+        # try to send a request and retrieve the article
+        page = requests.get(url, headers=HEADERS)
+    except requests.exceptions.RequestException as e:
+        # something went wrong so abort the program
+        raise SystemExit(e)
 
     soup = BeautifulSoup(page.content, 'html.parser')
 
     tags = {'p'}
     content = soup.find_all(tags)
-    website_info = {'title': soup.find('title').string, 'texts': []}
+    website_info = {'title': str(soup.find('title').string), 'texts': []}
 
     for passage in content:
         string = get_children_as_str(passage)
@@ -93,7 +102,7 @@ def get_texts_from_article(url: str) -> dict:
 
 
 @check_contracts
-def get_children_as_str(obj: BS4OBJECT) -> str:
+def get_children_as_str(obj: bs4.element.NavigableString | bs4.element.Tag) -> str:
     """
     Helper method for get_texts_containing
     Returns a string that concatenates the string elements inside the HTML tags based on the object passed in
@@ -102,8 +111,8 @@ def get_children_as_str(obj: BS4OBJECT) -> str:
     concatenate the elements inside the children of the object
     (ie. for <p>hello <strong>world</strong></p>, the object is the entire <p>, the children is the <strong> elem.)
 
-    :param obj: A bs4 object that represents the HTML corresponding to a website
-    :return:
+    Preconditions:
+        - obj is a bs4 object that represents the HTML corresponding to a website
     """
     if isinstance(obj, bs4.NavigableString):
         return remove_non_ascii(str(obj))
@@ -118,8 +127,6 @@ def get_children_as_str(obj: BS4OBJECT) -> str:
 def remove_non_ascii(string: str) -> str:
     """
     Helper method for get_children_as_str, and for handling strings
-    Strips non ascii values from the given string
-    :param string: the string to remove non ascii from
-    :return: returns new string with only ascii values
+    Strips non ascii values from the given string and returns a new string without the values
     """
     return ''.join([i if ord(i) < 128 else '' for i in string])
