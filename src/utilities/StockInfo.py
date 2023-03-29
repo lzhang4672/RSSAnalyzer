@@ -1,8 +1,17 @@
 from python_ta.contracts import check_contracts
 import csv
-from CSV import csv_reader
+from CSV import read_file
 
-tickers = csv_reader('tickers_data.csv')
+tickers = read_file('../data/tickers_data.csv')
+
+
+
+
+
+
+
+
+
 
 
 

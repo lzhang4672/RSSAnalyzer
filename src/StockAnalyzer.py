@@ -1,10 +1,21 @@
 from __future__ import annotations
 from typing import Optional
 from dataclasses import dataclass, field
+from utilities.CSV import load_scrape_cache
+import os
+
+
 
 CACHE_DIRECTORY = 'scrape_cache/'
 
+# EXCEPTIONS
 
+class StockAnalyzeError(Exception):
+    """A base class exception for the class"""
+
+
+class CacheDoesNotExistError(StockAnalyzeError):
+    """Thrown when a cached data wants to be used but the cached data associated with the id does not exist"""
 
 @dataclass
 class Stock:
@@ -32,16 +43,40 @@ class Stock:
 
 
 @dataclass
-class AnalyzeProgress:
+class StockProgress:
     """A dataclass represent the progress of analyzation for a stock
 
 
     Instance Attributes:
         - stock: the stock object to be analyzed
-
+        - articles_analyzed: the number of articles analyzed for the stock.
     """
     stock: Stock
     articles_analyzed: int
+
+
+
+@dataclass
+class StockAnalyzerSettings:
+    """a dataclass representing the settings to be used when StockAnalyzer does its analyzing.
+
+    Instance Attributes:
+        - articles_per_ticket: the number of articles that will be analyzed per ticker.
+        - use_cache: a boolean representing if the object should use the cache saved with the id.
+                  If a cache with the specified id exists and use_cache is True, then the object will not scrape news
+                  articles and instead build itself of the cached data.
+                  Otherwise, the object will scrape the internet for news articles associated with the tickers and
+                  build itself based on that while saving a cache with the associated id.
+        - id: a string representing the id associated with analyzation.
+        - cache_root: a string representing the folder location of where the cached analyzed data should be stored.
+        - output_info: a boolean representing if information should be printed to the console on the analyzation process
+    """
+
+    id: str
+    articles_per_ticker: int = 15
+    use_cache: bool = False
+    cache_root: str = CACHE_DIRECTORY
+    output_info: bool = True
 
 
 
@@ -50,28 +85,49 @@ class StockAnalyzer:
 
 
      Instance Attributes:
-     - id: a string representing the id associated with analyzation.
-     - tickers: a list of stock tickers to be analyzed by the object.
-     - use_cache: a boolean representing if the object should use the cache saved with the id.
-                  If a cache with the specified id exists and use_cache is True, then the object will not scrape news
-                  articles and instead build itself of the cached data.
-                  Otherwise, the object will scrape the internet for news articles associated with the tickers and
-                  build itself based on that while saving a cache with the associated id.
-
+        - tickers: a list of stock tickers to be analyzed by the object.
+     Private Instance Attributes:
+        - _settings: a StockAnalyzerSettings object that represents the settings to be used when analyzing the stocks.
+        - _data: a dictionary containing all the data of the stocks analyzed
     """
-    def _build_data(self):
 
-    def __init__(self, id: str, tickers: list[str], use_cache: Optional[bool] = True):
+    tickers: list[str]
+    _settings: StockAnalyzerSettings = StockAnalyzerSettings(id = "Default", articles_per_ticker=15, use_cache=True)
+    _data: dict[str, Any]
+    _progress: dict[str, StockProgress]
+
+
+    def _build_data(self):
+        """This private function is responsible for scraping news articles and building up data for the
+        sentiment values associated with a stock """
+        if self._settings.output_info:
+            print("Starting Analyzation...")
+        # load cached data if it exists
+        self._data = load_scrape_cache(self._settings.id + '.csv')
+        # load the cached data into local variables
+        for row in self._data:
+
+
+
+
+
+
+
+    def __init__(self, tickers: list[str], settings: StockAnalyzerSettings):
         """Initalize a StockAnalyzer object with the given tickers to analyze.
 
         Preconditions:
         - len(tickers) > 0
         - all ticker in tickers exist inside the data/tickers_data.csv file
         """
-        self._id = id
         self.tickers = tickers
-        self.use_cache = use_cache
+        self._settings = settings
 
-        if not use_cache:
+        # intialize the progress
+        for ticker in self.tickers:
+            if 
+
+
+        if not self._settings.use_cache:
             self._build_data()
 

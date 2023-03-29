@@ -1,13 +1,15 @@
 import csv
 
-field_names = ['symbol', 'name', 'industry', 'market cap']
-def csv_reader(file: str) -> dict[str, dict[str, str]]:
-    """Return a mapping of ticker symbols to the Ticker object"""
+
+def read_file(file: str) -> list[dict[str, str]]:
+    """Reads a csv file and returns it as a dictionary"""
+    ret = []
     with open(file) as csv_file:
         reader = csv.reader(csv_file)
-        d = {line[0]: {'name': line[1], 'industry': line[2], 'market cap': line[3]}
-             for line in reader}
-    return d
+        fields = next(reader)
+        for row in reader:
+            ret += [{fields[i]: row[i] for i in range(len(row))}]
+    return ret
 
 def csv_updater(file: str, new_ticker: dict):
     """Adds new ticker to the end of the csv file.
@@ -18,5 +20,4 @@ def csv_updater(file: str, new_ticker: dict):
         writer = csv.DictWriter(csv_file, fieldnames=field_names)
         writer.writerow(new_ticker)
         csv_file.close()
-
 
