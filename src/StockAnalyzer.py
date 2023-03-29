@@ -3,11 +3,11 @@ from typing import Optional
 from dataclasses import dataclass, field
 from CSV import read_file
 from StockInfo import get_info_from_ticker
+import json
 import os
 
+CACHE_DIRECTORY = 'scrape_cache/'
 
-
-CACHE_DIRECTORY = '../scrape_cache/'
 
 # EXCEPTIONS
 
@@ -17,6 +17,7 @@ class StockAnalyzeError(Exception):
 
 class CacheDoesNotExistError(StockAnalyzeError):
     """Thrown when a cached data wants to be used but the cached data associated with the id does not exist"""
+
 
 @dataclass
 class Stock:
@@ -63,8 +64,7 @@ class StockAnalyzeData:
     primary_articles_data: list[tuple[str, float]] = field(default_factory=list)
     linking_articles_data: list[tuple[str, float]] = field(default_factory=list)
     connected_stocks: dict[Stock, int] = field(default_factory=list)
-
-
+    scraper:
 
 
 @dataclass
@@ -89,6 +89,7 @@ class StockAnalyzerSettings:
     cache_root: str = CACHE_DIRECTORY
     output_info: bool = True
 
+
 class StockAnalyzer:
     """This class that analyzes information for stocks.
 
@@ -101,8 +102,14 @@ class StockAnalyzer:
     """
 
     tickers: list[str]
-    _settings: StockAnalyzerSettings = StockAnalyzerSettings(id="Default", articles_per_ticker=15, use_cache=True)
-    _analyze_data: dict[str, AnalyzeData]
+    _settings: StockAnalyzerSettings
+    _analyze_data: dict[str, AnalyzeData] = {}
+
+
+
+    def _analyze_stock(self, ticker):
+        stock_analyze_data = self._analyze_data[ticker]
+        number_of_articles_analyzed = len(stock_analyze_data)
 
 
     def _build_data(self):
@@ -110,18 +117,54 @@ class StockAnalyzer:
         sentiment values associated with a stock """
         if self._settings.output_info:
             print("Starting Analyzation...")
-        # load cached data if it exists
-        cached_data = read_file(CACHE_DIRECTORY + self._settings.id + '.csv')
-        # load the cached data into local variables
+        if self._settings.use_cache:
+            if self._settings.output_info:
+                print("Loading Scrape Data From Cache")
+            # load cached data if it exists
+            cached_data = read_file(CACHE_DIRECTORY + self._settings.id + '.csv')
+            # load the cached data into local variables
+            for row in cached_data:
+                # get all row data
+                ticker = row['Symbol']
+
+                stock_analyze_data = self._analyze_data[ticker]
+                if stock_analyze_data:
+                    # the stock analyze data exists for the ticker
+                    if self._settings.output_info:
+                        print("Loading Cached Data For: " + ticker)
+                    primary_articles_analyzed = json.loads(row['PrimaryArticlesAnalyzed'])
+                    primary_articles_sentiment_scores = json.loads(row['ArticlesSentimentScores'])
+                    connected_companies = json.loads(row['ConnectedCompanies'])
+                    connected_frequencies = json.loads(row['ConnectedFrequency'])
+                    linking_articles_analyzed = json.loads(row['LinkingArticlesAnalyzed'])
+                    linking_articles_sentiment_scores = json.loads(row['LinkingArticlesSentimentScores'])
+                    # load in primary articles data
+                    for i in range(len(primary_articles_analyzed)):
+                        article_link = primary_articles_analyzed[i]
+                        article_sentiment = primary_articles_sentiment_scores[i]
+                        stock_analyze_data.primary_articles_data += (article_link, article_sentiment)
+                    # load in linking articles data
+                    for i in range(len(linking_articles_analyzed)):
+                        article_link = linking_articles_analyzed[i]
+                        article_sentiment = linking_articles_sentiment_scores[i]
+                        stock_analyze_data.linking_articles_data += (article_link, article_sentiment)
+                    # load in connected stocks
+                    for i in range(len(connected_companies)):
+                        ticker, frequency = connected_companies[i], connected_frequencies[i]
+                        stock_analyze_data.connected_stocks[ticker] = frequency
+        # scrape for data if required
+        if self._settings.output_info:
+            print("Starting Web Scrape")
+        for ticker in self._analyze_data:
+            self._analyze_stock(ticker)
 
 
+        if self._settings.output_info:
+            print("Done Web Scrape")
 
-
-
-
-
-
-    def __init__(self, tickers: list[str], settings: StockAnalyzerSettings):
+    def __init__(self, tickers: list[str],
+                 settings: StockAnalyzerSettings = StockAnalyzerSettings(id="Default", articles_per_ticker=15,
+                                                                         use_cache=True)):
         """Initalize a StockAnalyzer object with the given tickers to analyze.
 
         Preconditions:
@@ -131,11 +174,14 @@ class StockAnalyzer:
         self.tickers = tickers
         self._settings = settings
 
+        if self._settings.output_info:
+            print("Fetching Stocks...")
         # set up the stocks and initalize the progress
         for ticker in self.tickers:
             stock_info = get_info_from_ticker(ticker)
             if stock_info is not None:
-                print('Found Data For: ' + ticker)
+                if self._settings.output_info:
+                    print('Found Data For: ' + ticker)
                 self._analyze_data[ticker] = StockAnalyzeData(
                     Stock(
                         name=stock_info['Name'],
