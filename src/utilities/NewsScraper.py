@@ -27,8 +27,6 @@ SEARCH_PARAMS = {
 NEWS_URL = "https://www.google.com/search"
 WEB_TIMEOUT = 30
 
-BS4OBJECT =
-
 
 @check_contracts
 def get_articles(query: str, number_of_articles: int) -> list[str]:
