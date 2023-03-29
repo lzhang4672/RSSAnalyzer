@@ -151,9 +151,6 @@ class Graph:
         """
 
 
-
-
-
 @check_contracts
 class IndustryGraph(Graph):
     """

@@ -3,7 +3,7 @@ import csv
 from CSV import read_file
 from typing import Optional
 
-tickers = read_file('../data/tickers_data.csv')
+tickers = read_file('data/tickers_data.csv')
 
 
 def get_info_from_ticker(ticker: str) -> dict[str, str] | None:

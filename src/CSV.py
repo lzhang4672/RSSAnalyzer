@@ -1,14 +1,17 @@
 import csv
+import os
 
 
 def read_file(file: str) -> list[dict[str, str]]:
     """Reads a csv file and returns it as a dictionary"""
     ret = []
-    with open(file) as csv_file:
-        reader = csv.reader(csv_file)
-        fields = next(reader)
-        for row in reader:
-            ret += [{fields[i]: row[i] for i in range(len(row))}]
+    if os.path.exists(file):
+        # check if path exists first
+        with open(file) as csv_file:
+            reader = csv.reader(csv_file)
+            fields = next(reader)
+            for row in reader:
+                ret += [{fields[i]: row[i] for i in range(len(row))}]
     return ret
 
 def csv_updater(file: str, new_ticker: dict):
