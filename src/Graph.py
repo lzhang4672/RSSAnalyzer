@@ -4,7 +4,7 @@ File containing the nodes and graphs to represent the stocks
 Copyright and Usage Information
 ===============================
 
-This file is provided solely for the personal and private use of students
+This file is provided solely for the personal and private use of TAs and professors
 taking CSC111 at the University of Toronto St. George campus. All forms of
 distribution of this code, whether as given or with any changes, are
 expressly prohibited. For more information on copyright for CSC111 materials,
@@ -84,15 +84,41 @@ class Edge:
     """
     A class representing the edge of the graph
 
-    Note with caution that this edge is bi-weighted
+    Note that this edge is bi-weighted
 
     Instance Attributes:
-        - u: a Node on one end of this edge
-        - v: another Node on the other end of this edge
+        - u: an IndustryNode or CompanyNode on one end of this edge
+        - v: an IndustryNode or CompanyNode on the other end of this edge
         - u_v_weight: weight for the edge going from u to v
         - v_u_weight: weight for edge going from v to u
     """
-    u: IndustryNode | CompanyNode
-    v: IndustryNode | CompanyNode
+    u: Node
+    v: Node
     u_v_weight: float
     v_u_weight: float
+
+    def __init__(self, u: Node, v: Node, u_v_weight: float, v_u_weight: float) -> None:
+        self.u = u
+        self.v = v
+        self.u_v_weight = u_v_weight
+        self.v_u_weight = v_u_weight
+
+    def get_weight(self) -> float:
+        """
+        Returns the average weight of the edge
+        """
+        return (self.u_v_weight + self.v_u_weight) / 2
+
+
+@check_contracts
+class Graph:
+    """
+    Abstract class for graph
+    """
+
+
+@check_contracts
+class IndustryGraph(Graph):
+    """
+    Graph where nodes are industries
+    """
