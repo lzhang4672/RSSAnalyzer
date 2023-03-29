@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional
 from dataclasses import dataclass, field
-from utilities.CSV import load_scrape_cache
+from CSV import read_file
 from StockInfo import get_info_from_ticker
 import os
 
@@ -44,16 +44,26 @@ class Stock:
 
 
 @dataclass
-class StockProgress:
+class StockAnalyzeData:
     """A dataclass represent the progress of analyzation for a stock
 
 
     Instance Attributes:
-        - stock: the stock object to be analyzed
-        - articles_analyzed: the number of articles analyzed for the stock.
+        - stock: the primary stock to be analyzed
+        - primary_articles_data: a list representing the articles analyzed that are specifically focusing on the stock
+                                in a tuple format where the first element is the url of the article and the
+                                second element is the sentiment value calculated form the article.
+        - linking_articles_data: a list representing outside articles that mention the stock in a tuple format where
+                                the first element is the url of the article and the second element is the sentiment
+                                value calculated from the article.
+        - connected_stocks: a dictionary with the key as a stock and an integer representing the frequency of that
+                            specific stock being mentioned in articles that focus specifically on the primary stock.
     """
     stock: Stock
-    articles_analyzed: int
+    primary_articles_data: list[tuple[str, float]] = field(default_factory=list)
+    linking_articles_data: list[tuple[str, float]] = field(default_factory=list)
+    connected_stocks: dict[Stock, int] = field(default_factory=list)
+
 
 
 
@@ -94,8 +104,7 @@ class StockAnalyzer:
 
     tickers: list[str]
     _settings: StockAnalyzerSettings = StockAnalyzerSettings(id = "Default", articles_per_ticker=15, use_cache=True)
-    _data: dict[str, Any]
-    _progress: dict[str, StockProgress]
+    _analyze_data: dict[str, AnalyzeData]
 
 
     def _build_data(self):
@@ -104,9 +113,9 @@ class StockAnalyzer:
         if self._settings.output_info:
             print("Starting Analyzation...")
         # load cached data if it exists
-        self._data = load_scrape_cache(CACHE_DIRECTORY + self._settings.id + '.csv')
+        cached_data = read_file(CACHE_DIRECTORY + self._settings.id + '.csv')
         # load the cached data into local variables
-        for row in self._data:
+
 
 
 
@@ -128,12 +137,18 @@ class StockAnalyzer:
         for ticker in self.tickers:
             stock_info = get_info_from_ticker(ticker)
             if stock_info is not None:
-                
+                print('Found Data For: ' + ticker)
+                self._analyze_data[ticker] = StockAnalyzeData(
+                    Stock(
+                        name=stock_info['Name'],
+                        ticker=stock_info['Symbol'],
+                        market_cap=float(stock_info['Market Cap']),
+                        industry=stock_info['Industry'],
+                        sentiment=0,
+                    ),
+                )
             else:
                 if self._settings.output_info:
                     print(ticker + ' was not found in the database')
 
-
-        if not self._settings.use_cache:
-            self._build_data()
-
+        self._build_data()
