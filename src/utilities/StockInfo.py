@@ -13,7 +13,7 @@ def get_info_from_ticker(ticker: str) -> dict | None:
     """
 
     for stock in tickers:
-        if ticker in stock:
+        if ticker.upper() in stock.values():
             return stock
 
     return None
