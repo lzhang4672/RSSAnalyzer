@@ -89,8 +89,6 @@ class StockAnalyzerSettings:
     cache_root: str = CACHE_DIRECTORY
     output_info: bool = True
 
-
-
 class StockAnalyzer:
     """This class that analyzes information for stocks.
 
