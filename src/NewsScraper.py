@@ -22,9 +22,62 @@ SEARCH_PARAMS = {
     "ceid": "US:en",
     "start": 10,
     "tbm": "nws",
+    "tbs": "qdr:",
 }
 NEWS_URL = "https://www.google.com/search"
 WEB_TIMEOUT = 30
+
+
+PUBLISH_RANGE = {
+    'PastYear': 'y',
+    'PastMonth': 'm',
+    'PastWeek': 'w',
+    'PastDay': 'd',
+    'Recent': '',
+}
+
+class NewsScraper:
+    """This class will handle the scraping process
+
+
+     Instance Attributes:
+        - search_query: a string representing what search query to use when scraping for articles.
+        - number_of_articles: an integer representing the number of articles to scrape.
+        - articles_scraped: a list containing the urls of the news articles scraped.
+        - publish_range: a string representing how recent the articles should be when being scraped.
+
+    """
+
+
+
+    search_query: str
+    number_of_articles: int
+    articles: list[str]
+    publish_range: str
+
+
+    def scrape_articles(self) -> bool:
+        """Scrapes the specified amount of articles stated in self.number_of_articles
+        Returns true of the scraping was successful, false otherwise.
+
+
+        """
+    def get_articles(self) -> list[str]:
+        return self.articles
+
+    def get_text_from_article_index(self, index: int) -> dict[str, str | list[str]]:
+
+    def __init__(self, search_query: str, number_of_articles: int, publish_range: str):
+        """Constructor for a NewsScraper object
+
+            Preconditions:
+                - search_query != ''
+                - 0 < number_of_articles
+                - any(PUBLISH_RANGE[range] == publish_range for range in PUBLISH_RANGE)
+        """
+        self.search_query = search_query
+        self.number_of_articles = number_of_articles
+        self.publish_range = publish_range
 
 
 @check_contracts
