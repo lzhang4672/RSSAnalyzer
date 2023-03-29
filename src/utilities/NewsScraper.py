@@ -15,8 +15,7 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                   "Chrome/100.0.4896.88 Safari/537.36"
 }
-TRUSTED_SOURCES = ["Benzinga", "Seeking Alpha", "Yahoo Finance", "Barron's", "MarketBeat", "TipRanks",
-                   "InvestorsObserver", ]
+
 SEARCH_PARAMS = {
     "hl": "en-US",  # language
     "gl": "US",  # country of the search, US -> USA
@@ -35,7 +34,6 @@ def get_articles(query: str, number_of_articles: int) -> list[str]:
     Preconditions:
         - query != ''
         - 0 < number_of_articles
-
     """
     articles = []
     number_of_articles_so_far = 0
