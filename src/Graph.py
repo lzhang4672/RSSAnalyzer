@@ -24,11 +24,11 @@ class Node:
         - neighbours: nodes connected to self
     """
     name: str
-    edges: list[Node]
+    edges: set[Edge]
 
     def __init__(self, name: str) -> None:
         self.name = name
-        self.edges = []
+        self.edges = set()
 
 
 @check_contracts
@@ -115,6 +115,43 @@ class Graph:
     """
     Abstract class for graph
     """
+    nodes: dict[str, Node]
+
+    def __init__(self) -> None:
+        self.nodes = {}
+
+    def add_node(self) -> None:
+        """
+        Adds a node to the graph
+        """
+        raise NotImplementedError
+
+    def add_node_with_edges(self) -> None:
+        """
+        Adds a node as well as the edges it has
+        """
+        raise NotImplementedError
+
+    def add_edge(self, u: Node, v: Node, u_v_weight, v_u_weight) -> None:
+        """
+        Add an edge between the two nodes in this graph.
+
+        Raise a ValueError if any of the nodes do not appear in this graph.
+        """
+        if u in self.nodes and v in self.nodes:
+            new_edge = Edge(u, v, u_v_weight, v_u_weight)
+            u.edges.append(new_edge)
+            v.edges.append(new_edge)
+        else:
+            raise ValueError
+
+    def get_neighbours_for_node(self, node: Node) -> list[Node]:
+        """
+        Returns the
+        """
+
+
+
 
 
 @check_contracts
@@ -122,3 +159,17 @@ class IndustryGraph(Graph):
     """
     Graph where nodes are industries
     """
+
+    @override
+    def add_node(self, name: str, market_cap: float, sentiment: float) -> None:
+        """
+        Adds an IndustryNode to the graph
+        """
+        new_node = IndustryNode(name, market_cap, sentiment)
+        self.nodes.append(new_node)
+
+    @override
+    def add_node_with_edges(self) -> None:
+        """
+
+        """
