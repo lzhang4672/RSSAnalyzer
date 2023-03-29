@@ -2,11 +2,12 @@ from __future__ import annotations
 from typing import Optional
 from dataclasses import dataclass, field
 from utilities.CSV import load_scrape_cache
+from StockInfo import get_info_from_ticker
 import os
 
 
 
-CACHE_DIRECTORY = 'scrape_cache/'
+CACHE_DIRECTORY = '../scrape_cache/'
 
 # EXCEPTIONS
 
@@ -103,7 +104,7 @@ class StockAnalyzer:
         if self._settings.output_info:
             print("Starting Analyzation...")
         # load cached data if it exists
-        self._data = load_scrape_cache(self._settings.id + '.csv')
+        self._data = load_scrape_cache(CACHE_DIRECTORY + self._settings.id + '.csv')
         # load the cached data into local variables
         for row in self._data:
 
@@ -123,9 +124,14 @@ class StockAnalyzer:
         self.tickers = tickers
         self._settings = settings
 
-        # intialize the progress
+        # set up the stocks and initalize the progress
         for ticker in self.tickers:
-            if 
+            stock_info = get_info_from_ticker(ticker)
+            if stock_info is not None:
+                
+            else:
+                if self._settings.output_info:
+                    print(ticker + ' was not found in the database')
 
 
         if not self._settings.use_cache:

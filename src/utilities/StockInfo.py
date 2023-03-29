@@ -17,3 +17,13 @@ def get_info_from_ticker(ticker: str) -> dict | None:
             return stock
 
     return None
+
+
+def get_ticker_from_name(name: str) -> str | None:
+
+
+
+
+def get_tickers() -> list[str]:
+
+
