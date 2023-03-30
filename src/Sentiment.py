@@ -9,6 +9,14 @@ from dataclasses import dataclass, field
 import StockInfo
 
 import nltk
+import ssl
+
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
 
 
 # install vader_lexicon model
@@ -81,22 +89,20 @@ def stocks_in_passage(passage: str) -> set:
     """
     Returns a set containing all the stocks mentioned in the passage as a ticker
     """
-    print(get_sentiment(passage))
     stocks_mentioned = set()
     words = passage.split()
     tickers, names = StockInfo.get_tickers_and_names()
 
     for word in words:
-        stock = word.upper()
-        if stock in tickers:
-            stocks_mentioned.add(stock)
-        elif stock in names:
-            stocks_mentioned.add(StockInfo.get_ticker_from_name(stock))
+        if word in tickers:
+            stocks_mentioned.add(word)
+        elif word in names:
+            stocks_mentioned.add(StockInfo.get_ticker_from_name(word))
 
     return stocks_mentioned
 
 
-def get_sentiment_for_stock_article(main_stock: Stock, news_article: NewsArticle) -> ArticleSentimentData:
+def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle, content: list[str]) -> ArticleSentimentData:
     """
     Returns sentiment data for an article
     """
@@ -111,7 +117,7 @@ def get_sentiment_for_stock_article(main_stock: Stock, news_article: NewsArticle
         title_stock_score = sentiment_data.pop(main_stock.ticker)  # don't want main stock to be in other stocks dict
 
     passage_stock_score = 0
-    for passage in news_article.paragraphs:
+    for passage in content:
         passage_stocks = stocks_in_passage(passage)
         if len(passage_stocks) > 1:
             passage_stocks_sentiment = get_complex_phrase_sentiment_score(passage)
