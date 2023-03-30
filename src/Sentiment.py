@@ -7,6 +7,7 @@ from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
 from NewsScraper import NewsArticle
 import StockInfo
+from StockAnalyzer import Stock
 
 # model constants
 openai.api_key = "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"
@@ -17,8 +18,6 @@ SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company " \
 MAX_TOKENS = 250
 
 sentiment_analyzer = SentimentIntensityAnalyzer()
-
-
 
 
 @dataclass
@@ -34,7 +33,8 @@ class ArticleSentimentData:
     main_sentiment_score: float
     other_sentiment_scores: dict[str, float]
 
-def get_complex_phrase_sentiment_score(passage: str) -> None:
+
+def get_complex_phrase_sentiment_score(passage: str) -> dict[str, float]:
     """
     Used when retrieving the sentiment scores of multiple companies in a singular sentence/paragraph.
     """
@@ -73,33 +73,56 @@ def get_sentiment_single(passage: str) -> float:
     return (cleaned_score + raw_score) * 5
 
 
-def stocks_in_passage(passage: str) -> tuple[int, set]:
+def stocks_in_passage(passage: str) -> set:
     """
-    Returns a dictionary mapping stock mentioned to the number of times mentioned
+    Returns a set containing all the stocks mentioned in the passage as a ticker
     """
-    stocks_mentioned, counter = set(), 0
+    stocks_mentioned = set()
     words = passage.split()
     tickers, names = StockInfo.get_tickers_and_names()
 
     for word in words:
-        if word in tickers or word in names:
-            counter += 1
+        if word in tickers:
             stocks_mentioned.add(word)
+        elif word in names:
+            stocks_mentioned.add(StockInfo.get_ticker_from_name(word))
 
-    return counter, stocks_mentioned
+    return stocks_mentioned
 
 
-
-def get_sentiment_for_article(news_article: NewsArticle, content: list[str]) -> ArticleSentimentData:
+def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle, content: list[str]) -> ArticleSentimentData:
     """
-        Do some math calculations. Weight the news_article title the heaviest. Weight the other stocks mentioned
-        a little less.
+    Returns sentiment data for an article
     """
+    title_stocks = stocks_in_passage(news_article.title)
+    title_stock_score = 0
+    sentiment_data = {}
+    if len(title_stocks) > 1:
+        sentiment_data.update(get_complex_phrase_sentiment_score(news_article.title))
+    else:
+        sentiment_data[title_stocks.pop()] = get_sentiment_single(news_article.title)
+    if main_stock.ticker in sentiment_data:
+        title_stock_score = sentiment_data.pop(main_stock.ticker)  # don't want main stock to be in other stocks dict
 
+    passage_stock_score = 0
+    for passage in content:
+        passage_stocks = stocks_in_passage(passage)
+        if len(passage_stocks) > 1:
+            passage_stocks_sentiment = get_complex_phrase_sentiment_score(passage)
+            for stock in passage:
+                if stock in sentiment_data:
+                    sentiment_data[stock] = (sentiment_data[stock] + passage_stocks_sentiment[stock]) / 2
+                else:
+                    sentiment_data[stock] = passage_stocks_sentiment[stock]
+        else:
+            sentiment_data[passage_stocks.pop()] = get_sentiment_single(passage)
+        if main_stock.ticker in sentiment_data:
+            passage_stock_score += sentiment_data.pop(main_stock.ticker)
 
-
-def get_sentiment_for_multiple(passge: str) -> float:
-    """
-    Uses OpenAI
-    """
-    pass
+    # adjustment for main stock - title is more heavily weighted
+    main_stock_score = (title_stock_score * 0.6) + (passage_stock_score * 0.4) / len(content)
+    # adjustment for other stocks since the article is not primarly focused on the other stocks, make it weigh
+    # slightly less
+    for stock in sentiment_data:
+        sentiment_data[stock] *= 0.8
+    return ArticleSentimentData(main_sentiment_score=main_stock_score, other_sentiment_scores=sentiment_data)

@@ -50,6 +50,7 @@ class NewsArticle:
     title: str
     url: str
 
+
 def get_text_content_from_article(news_article: NewsArticle) -> list[str] | None:
     """
     Returns a list containing the texts in the article
