@@ -1,18 +1,19 @@
 from __future__ import annotations
 from typing import Optional
 import openai
+from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
 from NewsScraper import NewsArticleContent
 from dataclasses import dataclass, field
 import StockInfo
 
-from nltk.sentiment import SentimentIntensityAnalyzer
-from nltk.corpus import stopwords
+import nltk
 
+
+# install vader_lexicon model
+nltk.downloader.download('vader_lexicon')
 sentiment_analyzer = SentimentIntensityAnalyzer()
-
-
-
 
 # model constants
 openai.api_key = "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"
@@ -21,9 +22,6 @@ SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company " \
                 "in a " \
                 "dictionary format. Do NOT provide any other output. Output \"ERROR\" on any errors.\n"
 MAX_TOKENS = 250
-
-
-
 
 
 @dataclass
