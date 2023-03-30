@@ -36,9 +36,9 @@ PUBLISH_RANGE = {
     'Recent': '',
 }
 
+
 class NewsScraper:
     """This class will handle the scraping process
-
 
      Instance Attributes:
         - search_query: a string representing what search query to use when scraping for articles.
@@ -47,25 +47,83 @@ class NewsScraper:
         - publish_range: a string representing how recent the articles should be when being scraped.
 
     """
-
-
-
     search_query: str
     number_of_articles: int
-    articles: list[str]
+    articles_scraped: list[str]
     publish_range: str
-
 
     def scrape_articles(self) -> bool:
         """Scrapes the specified amount of articles stated in self.number_of_articles
         Returns true of the scraping was successful, false otherwise.
 
-
+        Preconditions:
+            - query != ''
+            - 0 < number_of_articles
         """
-    def get_articles(self) -> list[str]:
-        return self.articles
+        number_of_articles_so_far = 0
+        search_params = SEARCH_PARAMS
+        # configure search params
+        search_params["q"] = query + " stock"
+        while number_of_articles_so_far < number_of_articles:
+            # sleep for an arbitrary amount to avoid rate limiting
+            time.sleep(random.uniform(0.25, 1))
+            try:
+                # try to send a request and retrieve the articles from Google News
+                html = requests.get(NEWS_URL, params=search_params, headers=HEADERS, timeout=30)
+            except requests.exceptions.RequestException as e:
+                # something went wrong so abort the program
+                return False
+            # parse the html using beautifulsoup
+            soup = BeautifulSoup(html.text, "lxml")
+            for result in soup.select(".WlydOe"):
+                # get the article link by retrieving href tags.
+                article_link = result.get("href")
+                self.articles_scraped += [article_link]
+                number_of_articles_so_far += 1
+            if soup.select_one('.BBwThe'):
+                search_params["start"] += 10
+            else:
+                break
 
-    def get_text_from_article_index(self, index: int) -> dict[str, str | list[str]]:
+        return True
+
+    def get_articles(self) -> list[str]:
+        """
+        Returns the url of the articles scraped
+        """
+        return self.articles_scraped
+
+    def get_text_from_article_index(self, index: int) -> dict[str, str | list[str]] | None:
+        """
+        Returns a dictionary specifying the title and texts in the article (two keys in the dictionary)
+        Texts will be given in as a list of strings, and only <p> tags will be scraped to avoid too many texts. Note
+        that any piece of text with only one word in it will NOT be included
+
+        If this functions fails to fetch the url, return None
+
+        Preconditions:
+            - url must be a legal url
+        """
+        url = self.articles_scraped[index]
+        try:
+            # try to send a request and retrieve the article
+            page = requests.get(url, headers=HEADERS)
+        except requests.exceptions.RequestException as e:
+            # something went wrong so abort the program
+            return None
+
+        soup = BeautifulSoup(page.content, 'html.parser')
+
+        tags = {'p'}
+        content = soup.find_all(tags)
+        website_info = {'title': str(soup.find('title').string), 'texts': []}
+
+        for passage in content:
+            string = get_children_as_str(passage)
+            if len(string.split()) > 1:  # has more than just 1 word
+                website_info['texts'].append(string)
+
+        return website_info
 
     def __init__(self, search_query: str, number_of_articles: int, publish_range: str):
         """Constructor for a NewsScraper object
@@ -78,76 +136,6 @@ class NewsScraper:
         self.search_query = search_query
         self.number_of_articles = number_of_articles
         self.publish_range = publish_range
-
-
-@check_contracts
-def get_articles(query: str, number_of_articles: int) -> list[str]:
-    """Returns a list of article links as a string in a list.
-
-    Preconditions:
-        - query != ''
-        - 0 < number_of_articles
-    """
-    articles = []
-    number_of_articles_so_far = 0
-    search_params = SEARCH_PARAMS
-    # configure search params
-    search_params["q"] = query + " stock"
-    while number_of_articles_so_far < number_of_articles:
-        # sleep for an arbitrary amount to avoid rate limiting
-        time.sleep(random.uniform(0.25, 1))
-        try:
-            # try to send a request and retrieve the articles from google news
-            html = requests.get(NEWS_URL, params=search_params, headers=HEADERS, timeout=30)
-        except requests.exceptions.RequestException as e:
-            # something went wrong so abort the program
-            raise SystemExit(e)
-        # parse the html using beautifulsoup
-        soup = BeautifulSoup(html.text, "lxml")
-        for result in soup.select(".WlydOe"):
-            # get the article link by retrieving href tags.
-            article_link = result.get("href")
-            articles += [article_link]
-            number_of_articles_so_far += 1
-        if soup.select_one('.BBwThe'):
-            search_params["start"] += 10
-        else:
-            break
-
-    return articles
-
-
-@check_contracts
-def get_texts_from_article(url: str) -> dict[str, str | list[str]]:
-    """
-    Returns a dictionary specifying the title and texts in the article (two keys in the dictionary)
-    Texts will be given in as a list of strings, and only <p> tags will be scraped to avoid too many texts. Note that
-    any piece of text with only one word in it will NOT be included
-
-    If this functions fails to fetch the url, an exception will be thrown
-
-    Preconditions:
-        - url must be a legal url
-    """
-    try:
-        # try to send a request and retrieve the article
-        page = requests.get(url, headers=HEADERS)
-    except requests.exceptions.RequestException as e:
-        # something went wrong so abort the program
-        raise SystemExit(e)
-
-    soup = BeautifulSoup(page.content, 'html.parser')
-
-    tags = {'p'}
-    content = soup.find_all(tags)
-    website_info = {'title': str(soup.find('title').string), 'texts': []}
-
-    for passage in content:
-        string = get_children_as_str(passage)
-        if len(string.split()) > 1:  # has more than just 1 word
-            website_info['texts'].append(string)
-
-    return website_info
 
 
 @check_contracts

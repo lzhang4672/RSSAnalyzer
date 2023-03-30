@@ -14,6 +14,7 @@ def read_file(file: str) -> list[dict[str, str]]:
                 ret += [{fields[i]: row[i] for i in range(len(row))}]
     return ret
 
+
 def csv_updater(file: str, new_ticker: dict):
     """Adds new ticker to the end of the csv file.
     Instance Atttributes:
@@ -23,4 +24,3 @@ def csv_updater(file: str, new_ticker: dict):
         writer = csv.DictWriter(csv_file, fieldnames=field_names)
         writer.writerow(new_ticker)
         csv_file.close()
-
