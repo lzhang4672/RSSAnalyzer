@@ -44,5 +44,5 @@ def get_tickers_and_names() -> tuple[set, set]:
     symbols, names = set(), set()
     for element in tickers:
         symbols.add(element['Symbol'])
-        names.add(element['Name'])
+        names.add(element['Name'].upper())
     return symbols, names

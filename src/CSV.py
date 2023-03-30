@@ -30,6 +30,7 @@ def write_to_file(file_name: str, fields: list[str], rows: list[dict[str, Any]])
         # write the rows
         for row in rows:
             writer.writerow(row)
+
 def csv_updater(file: str, new_ticker: dict):
     """Adds new ticker to the end of the csv file.
     Instance Atttributes:
