@@ -178,31 +178,23 @@ class IndustryGraph(Graph):
         new_node = IndustryNode(name, market_cap, sentiment)
         self.nodes[name] = new_node
 
-    @override
-    def add_node_with_edges(self, name: str, market_cap: float, u: Node, v:Node, u_v_weight: float, v_u_weight: float) -> None:
-        """
-        Adds an IndustryNode and an edge to the graph
-        """
-        new_u = IndustryNode(name, market_cap, sentiment)
-
-
     def add_edge(self, u: Node, v: Node, u_v_weight: float, v_u_weight: float) -> None:
         """
         Adds an edge between two nodes in the graph
         """
-        super.__init__(u, v, u_v_weight, v_u_weight)
+        super.add_edge(u, v, u_v_weight, v_u_weight)
 
     def get_neighbours_for_node(self, node: Node) -> list[Node]:
         """
         Returns the nodes that are connected with the current node in this graph.
         """
-        super.__init__(node)
+        return super().get_neighbours_for_node(node)
 
     def get_node_by_name(self, name: str) -> Node:
         """
         Returns the node with the given name in the graph
         """
-        super.__init__(name)
+        return super().get_node_by_name(name)
 
 class CompanyGraph(Graph):
     """
@@ -220,16 +212,16 @@ class CompanyGraph(Graph):
         """
         Adds an edge to the graph
         """
-        super.__init__(u, v, u_v_weight, v_u_weight)
+        super.add_edge(u, v, u_v_weight, v_u_weight)
 
     def get_neighbours_for_node(self, node: Node) -> list[Node]:
         """
         Returns the nodes that are connected with the current node in this graph.
         """
-        super.__init__(node)
+        return super.get_neighbours_for_node(node)
 
     def get_node_by_name(self, name: str) -> Node:
         """
         Returns the node with the given name in the graph
         """
-        super.__init__(name)
+        return super.get_node_by_name(name)
