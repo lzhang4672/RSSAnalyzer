@@ -162,7 +162,7 @@ class Graph:
         """
         return self.nodes[name]
 
-
+        
 
 @check_contracts
 class IndustryGraph(Graph):

@@ -3,11 +3,15 @@ from typing import Optional
 from dataclasses import dataclass, field
 from CSV import read_file
 from StockInfo import get_info_from_ticker
-from NewsScraper import NewsArticle, NewsScraper, PUBLISH_RANGE
+from NewsScraper import NewsArticleContent, NewsScraper, PUBLISH_RANGE
 import json
 import os
 
 CACHE_DIRECTORY = 'scrape_cache/'
+CACHE_HEADERS = [
+    'Symbol', 'PrimaryArticlesAnalyzed', ''
+]
+
 
 
 # EXCEPTIONS
@@ -63,8 +67,8 @@ class StockAnalyzeData:
     """
     stock: Stock
     scraper: NewsScraper
-    primary_articles_data: list[tuple[NewsArticle, float]] = field(default_factory=list)
-    linking_articles_data: list[tuple[NewsArticle, float]] = field(default_factory=list)
+    primary_articles_data: list[tuple[str, float]] = field(default_factory=list)
+    linking_articles_data: list[tuple[str, float]] = field(default_factory=list)
     connected_stocks: dict[Stock, int] = field(default_factory=list)
 
 @dataclass
@@ -112,12 +116,19 @@ class StockAnalyzer:
 
 
 
+
+    def _save_cache(self):
+        """Called to save the current progress of scraping to a csv
+        """
+
+
+
+
     def _analyze_stock(self, ticker):
         stock_analyze_data = self._analyze_data[ticker]
         stock_analyze_data.scraper.scrape_articles()
-        for news_article in stock_analyze_data.scraper.articles_scraped:
-            print(news_article.title)
-            print(news_article.url)
+        for url in stock_analyze_data.scraper.articles_scraped:
+            print(url)
 
 
     def _build_data(self):

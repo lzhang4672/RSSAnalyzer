@@ -7,7 +7,12 @@ from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
 from NewsScraper import NewsArticle
 import StockInfo
-from StockAnalyzer import Stock
+
+
+# fin-bert model
+finbert = BertForSequenceClassification.from_pretrained('yiyanghkust/finbert-tone', num_labels=3)
+tokenizer = BertTokenizer.from_pretrained('yiyanghkust/finbert-tone')
+get_sentiment = pipeline("text-classification", model=finbert, tokenizer=tokenizer)
 
 # model constants
 openai.api_key = "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"
@@ -18,6 +23,8 @@ SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company " \
 MAX_TOKENS = 250
 
 sentiment_analyzer = SentimentIntensityAnalyzer()
+
+
 
 
 @dataclass

@@ -37,7 +37,7 @@ PUBLISH_RANGE = {
 }
 
 @dataclass
-class NewsArticle:
+class NewsArticleContent:
     """A dataclass to represent the content of a news article
 
     Instance Attributes:
@@ -48,12 +48,12 @@ class NewsArticle:
         - url is in the format of a web url
     """
     title: str
-    url: str
+    paragraphs: list[str]
 
 
-def get_text_content_from_article(news_article: NewsArticle) -> list[str] | None:
+def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     """
-    Returns a list containing the texts in the article
+    Returns a NewsArticleContentObject that contains the content for the article
     Texts will be given in as a list of strings, and only <p> tags will be scraped to avoid too many texts. Note
     that any piece of text with only one word in it will NOT be included
 
@@ -63,7 +63,6 @@ def get_text_content_from_article(news_article: NewsArticle) -> list[str] | None
         - news_article.url is a legal url.
     """
     texts = []
-    url = news_article.url
     try:
         # try to send a request and retrieve the article
         page = requests.get(url, headers=HEADERS)
@@ -74,6 +73,7 @@ def get_text_content_from_article(news_article: NewsArticle) -> list[str] | None
     soup = BeautifulSoup(page.content, 'html.parser')
 
     tags = {'p'}
+    title = str(soup.find('title').string)
     content = soup.find_all(tags)
 
     for passage in content:
@@ -81,7 +81,10 @@ def get_text_content_from_article(news_article: NewsArticle) -> list[str] | None
         if len(string.split()) > 1:  # has more than just 1 word
             texts += [string]
 
-    return texts
+    return NewsArticleContent(
+        title=title,
+        paragraphs=texts
+    )
 
 
 class NewsScraper:
@@ -96,7 +99,7 @@ class NewsScraper:
     """
     search_query: str
     number_of_articles: int
-    articles_scraped: list[NewsArticle]
+    articles_scraped: list[str]
     publish_range: str
 
     def scrape_articles(self) -> bool:
@@ -125,13 +128,10 @@ class NewsScraper:
             soup = BeautifulSoup(html.text, "lxml")
             for result in soup.select(".WlydOe"):
                 # get the article link by retrieving href tags.
-                article_title = result.select_one(".mCBkyc").text
                 article_link = result.get("href")
-                self.articles_scraped += [NewsArticle(
-                    title=article_title,
-                    url=article_link
-                )]
-                number_of_articles_so_far += 1
+                if article_link not in self.articles_scraped:
+                    self.articles_scraped += [article_link]
+                    number_of_articles_so_far += 1
             if soup.select_one('.BBwThe'):
                 SEARCH_PARAMS["start"] += 10
             else:
@@ -139,7 +139,7 @@ class NewsScraper:
 
         return True
 
-    def get_articles(self) -> list[NewsArticle]:
+    def get_articles(self) -> list[str]:
         """
         Returns the url of the articles scraped
         """
