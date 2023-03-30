@@ -1,11 +1,10 @@
 from __future__ import annotations
 from typing import Optional
-
 import openai
-from nltk.sentiment import SentimentIntensityAnalyzer
-from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
-from NewsScraper import NewsArticle
+from NewsScraper import NewsArticleContent
+from dataclasses import dataclass, field
+from transformers import BertTokenizer, BertForSequenceClassification, pipeline
 import StockInfo
 
 
@@ -22,7 +21,6 @@ SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company " \
                 "dictionary format. Do NOT provide any other output. Output \"ERROR\" on any errors.\n"
 MAX_TOKENS = 250
 
-sentiment_analyzer = SentimentIntensityAnalyzer()
 
 
 
@@ -84,6 +82,7 @@ def stocks_in_passage(passage: str) -> set:
     """
     Returns a set containing all the stocks mentioned in the passage as a ticker
     """
+    print(get_sentiment(passage))
     stocks_mentioned = set()
     words = passage.split()
     tickers, names = StockInfo.get_tickers_and_names()

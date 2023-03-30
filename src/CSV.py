@@ -1,6 +1,6 @@
 import csv
 import os
-
+from typing import Any
 
 def read_file(file: str) -> list[dict[str, str]]:
     """Reads a csv file and returns it as a dictionary"""
