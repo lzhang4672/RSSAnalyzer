@@ -18,6 +18,21 @@ MAX_TOKENS = 250
 sentiment_analyzer = SentimentIntensityAnalyzer()
 
 
+
+
+@dataclass
+class ArticleSentimentData:
+    """A dataclass represetning the data returned by sentiment
+
+    Instance Attributes:
+        - main_sentiment_score: a float -10 <= x <= 10. This score represents the main stock's sentiment
+        - other_sentiment_scores: a dictionary representing other stocks mentioned in the article corresponding to
+                                  their sentiment.
+    """
+
+    main_sentiment_score: float
+    other_sentiment_scores: dict[str, float]
+
 def get_complex_phrase_sentiment_score(passage: str) -> None:
     """
     Used when retrieving the sentiment scores of multiple companies in a singular sentence/paragraph.

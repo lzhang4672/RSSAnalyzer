@@ -36,6 +36,9 @@ PUBLISH_RANGE = {
     'Recent': '',
 }
 
+@dataclass
+class NewsContent:
+    
 
 @dataclass
 class NewsArticle:

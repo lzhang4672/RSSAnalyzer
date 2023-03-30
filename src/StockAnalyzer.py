@@ -63,8 +63,8 @@ class StockAnalyzeData:
     """
     stock: Stock
     scraper: NewsScraper
-    primary_articles_data: list[tuple[str, float]] = field(default_factory=list)
-    linking_articles_data: list[tuple[str, float]] = field(default_factory=list)
+    primary_articles_data: list[tuple[NewsArticle, float]] = field(default_factory=list)
+    linking_articles_data: list[tuple[NewsArticle, float]] = field(default_factory=list)
     connected_stocks: dict[Stock, int] = field(default_factory=list)
 
 @dataclass
@@ -110,7 +110,9 @@ class StockAnalyzer:
     def _analyze_stock(self, ticker):
         stock_analyze_data = self._analyze_data[ticker]
         number_of_articles_analyzed = len(stock_analyze_data)
-
+        stock_analyze_data.scraper:scrape_articles()
+        for news_article in stock_analyze_data.scraper:get_articles():
+            
 
     def _build_data(self):
         """This private function is responsible for scraping news articles and building up data for the
