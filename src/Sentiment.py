@@ -90,15 +90,15 @@ def stocks_in_passage(passage: str) -> set:
     Returns a set containing all the stocks mentioned in the passage as a ticker
     """
     stocks_mentioned = set()
-    words = passage.split()
     tickers, names = StockInfo.get_tickers_and_names()
+    sentence = passage.upper()
+    for ticker in tickers:
+        if ticker in sentence:
+            stocks_mentioned.add(ticker)
 
-    for word in words:
-        stock = word.upper()
-        if stock in tickers:
-            stocks_mentioned.add(stock)
-        elif stock in names:
-            stocks_mentioned.add(StockInfo.get_ticker_from_name(stock))
+    for name in names:
+        if name in sentence:
+            stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
 
     return stocks_mentioned
 

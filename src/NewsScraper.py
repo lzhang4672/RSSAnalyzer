@@ -79,7 +79,7 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     for passage in content:
         string = get_children_as_str(passage)
         if len(string.split()) > 1:  # has more than just 1 word
-            texts += [string]
+            texts.extend(string.split('.'))
 
     return NewsArticleContent(
         title=title,

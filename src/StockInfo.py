@@ -25,8 +25,8 @@ def get_ticker_from_name(name: str) -> str | None:
     Otherwise returns None if not found
     """
     for stock in tickers:
-        if name.lower() == stock['Name'].lower():
-            return stock
+        if name.upper() == stock['Name'].upper():
+            return stock['Symbol'].upper()
     return None
 
 
