@@ -5,6 +5,7 @@ import openai
 from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
+from NewsScraper import NewsArticle
 import StockInfo
 
 # model constants
@@ -88,13 +89,13 @@ def stocks_in_passage(passage: str) -> tuple[int, set]:
     return counter, stocks_mentioned
 
 
-def get_sentiment_for_article(passage: int) -> dict[str, float]:
+
+def get_sentiment_for_article(news_article: NewsArticle, content: list[str]) -> ArticleSentimentData:
     """
-    Returns a dictionary mapping a stock to it's associated sentiment based on article passages given
-    :param passages: all the scraped passages in the article
+        Do some math calculations. Weight the news_article title the heaviest. Weight the other stocks mentioned
+        a little less.
     """
 
-def get_all_sentiment()
 
 
 def get_sentiment_for_multiple(passge: str) -> float:
