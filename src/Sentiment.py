@@ -94,10 +94,11 @@ def stocks_in_passage(passage: str) -> set:
     tickers, names = StockInfo.get_tickers_and_names()
 
     for word in words:
-        if word in tickers:
-            stocks_mentioned.add(word)
-        elif word in names:
-            stocks_mentioned.add(StockInfo.get_ticker_from_name(word))
+        stock = word.upper()
+        if stock in tickers:
+            stocks_mentioned.add(stock)
+        elif stock in names:
+            stocks_mentioned.add(StockInfo.get_ticker_from_name(stock))
 
     return stocks_mentioned
 
