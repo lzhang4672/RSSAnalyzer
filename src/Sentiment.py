@@ -4,14 +4,15 @@ import openai
 from python_ta.contracts import check_contracts
 from NewsScraper import NewsArticleContent
 from dataclasses import dataclass, field
-from transformers import BertTokenizer, BertForSequenceClassification, pipeline
 import StockInfo
 
+from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.corpus import stopwords
 
-# fin-bert model
-finbert = BertForSequenceClassification.from_pretrained('yiyanghkust/finbert-tone', num_labels=3)
-tokenizer = BertTokenizer.from_pretrained('yiyanghkust/finbert-tone')
-get_sentiment = pipeline("text-classification", model=finbert, tokenizer=tokenizer)
+sentiment_analyzer = SentimentIntensityAnalyzer()
+
+
+
 
 # model constants
 openai.api_key = "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"
