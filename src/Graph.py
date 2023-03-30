@@ -147,8 +147,21 @@ class Graph:
 
     def get_neighbours_for_node(self, node: Node) -> list[Node]:
         """
-        Returns the
+        Returns the nodes that are connected with the current node in this graph.
+
+        Raise a ValueError if the node does not appear in this graph.
         """
+        return [neighbour for neighbour in node.edges]
+
+
+    def get_node_by_name(self, name: str) -> Node:
+        """
+        Return the node with the given name in this graph.
+
+        Raise ValueError if the node with the given name is not in this graph.
+        """
+        return self.nodes[name]
+
 
 
 @check_contracts
@@ -163,10 +176,60 @@ class IndustryGraph(Graph):
         Adds an IndustryNode to the graph
         """
         new_node = IndustryNode(name, market_cap, sentiment)
-        self.nodes.append(new_node)
+        self.nodes[name] = new_node
 
     @override
-    def add_node_with_edges(self) -> None:
+    def add_node_with_edges(self, name: str, market_cap: float, u: Node, v:Node, u_v_weight: float, v_u_weight: float) -> None:
         """
+        Adds an IndustryNode and an edge to the graph
+        """
+        new_u = IndustryNode(name, market_cap, sentiment)
 
+
+    def add_edge(self, u: Node, v: Node, u_v_weight: float, v_u_weight: float) -> None:
         """
+        Adds an edge between two nodes in the graph
+        """
+        super.__init__(u, v, u_v_weight, v_u_weight)
+
+    def get_neighbours_for_node(self, node: Node) -> list[Node]:
+        """
+        Returns the nodes that are connected with the current node in this graph.
+        """
+        super.__init__(node)
+
+    def get_node_by_name(self, name: str) -> Node:
+        """
+        Returns the node with the given name in the graph
+        """
+        super.__init__(name)
+
+class CompanyGraph(Graph):
+    """
+    Graph where the nodes are companies
+    """
+    @override
+    def add_node(self, ticker: str, market_cap: float, industry: str, sentiment: float) -> None:
+        """
+        Adds an CompanyNode to the graph
+        """
+        new_node = CompanyNode(ticker, market_cap, industry, sentiment)
+        self.nodes[name] = new_node
+
+    def add_edge(self, u: Node, v: Node, u_v_weight: float, v_u_weight: float) -> None:
+        """
+        Adds an edge to the graph
+        """
+        super.__init__(u, v, u_v_weight, v_u_weight)
+
+    def get_neighbours_for_node(self, node: Node) -> list[Node]:
+        """
+        Returns the nodes that are connected with the current node in this graph.
+        """
+        super.__init__(node)
+
+    def get_node_by_name(self, name: str) -> Node:
+        """
+        Returns the node with the given name in the graph
+        """
+        super.__init__(name)
