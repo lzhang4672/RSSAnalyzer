@@ -87,15 +87,16 @@ def stocks_in_passage(passage: str) -> set:
     tickers, names = StockInfo.get_tickers_and_names()
 
     for word in words:
-        if word in tickers:
-            stocks_mentioned.add(word)
-        elif word in names:
-            stocks_mentioned.add(StockInfo.get_ticker_from_name(word))
+        stock = word.upper()
+        if stock in tickers:
+            stocks_mentioned.add(stock)
+        elif stock in names:
+            stocks_mentioned.add(StockInfo.get_ticker_from_name(stock))
 
     return stocks_mentioned
 
 
-def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle, content: list[str]) -> ArticleSentimentData:
+def get_sentiment_for_stock_article(main_stock: Stock, news_article: NewsArticle) -> ArticleSentimentData:
     """
     Returns sentiment data for an article
     """
@@ -110,7 +111,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle, cont
         title_stock_score = sentiment_data.pop(main_stock.ticker)  # don't want main stock to be in other stocks dict
 
     passage_stock_score = 0
-    for passage in content:
+    for passage in news_article.paragraphs:
         passage_stocks = stocks_in_passage(passage)
         if len(passage_stocks) > 1:
             passage_stocks_sentiment = get_complex_phrase_sentiment_score(passage)
