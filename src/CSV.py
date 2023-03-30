@@ -15,6 +15,21 @@ def read_file(file: str) -> list[dict[str, str]]:
     return ret
 
 
+def write_to_file(file_name: str, fields: list[str], rows: list[dict[str, Any]]) -> None:
+    """Function that writes to a csv file.
+
+    Preconditions:
+        - file_name ends in the valid .csv format
+        - fields != []
+        - every row in rows has proper amount of keys and the keys match with fields (luke implement)
+    """
+    with open(file_name, 'w', encoding='UTF8') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fields)
+        # write the fields
+        writer.writeheader()
+        # write the rows
+        for row in rows:
+            writer.writerow(row)
 def csv_updater(file: str, new_ticker: dict):
     """Adds new ticker to the end of the csv file.
     Instance Atttributes:
