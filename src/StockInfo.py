@@ -35,3 +35,14 @@ def get_tickers() -> list[str]:
     Returns a list containing all the tickers in the csv
     """
     return [stock['Symbol'] for stock in tickers]
+
+
+def get_tickers_and_names() -> tuple[set, set]:
+    """
+    Returns tickers and names in the tickers list
+    """
+    symbols, names = set(), set()
+    for element in tickers:
+        symbols.add(element['Symbol'])
+        names.add(element['Name'])
+    return symbols, names

@@ -3,7 +3,9 @@ from typing import Optional
 
 import openai
 from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
+import StockInfo
 
 # model constants
 openai.api_key = "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"
@@ -16,23 +18,72 @@ MAX_TOKENS = 250
 sentiment_analyzer = SentimentIntensityAnalyzer()
 
 
-class Sentiment:
-    @staticmethod
-    def get_complex_phrase_sentiment_score(passage: str) -> None:
-        """
-        Used when retrieving the sentiment scores of multiple companies in a singular sentence/paragraph.
-        """
-        nlk_score = sentiment_analyzer.polarity_scores(passage)
-        if nlk_score['neu'] < 0.5 or nlk_score["neg"] > 0.1 or nlk_score["pos"] > 0.1:
-            response = openai.ChatCompletion.create(
-                model=model_engine,
-                messages=[{"role": "system", "content": SET_UP_PROMPT + passage}],
-                max_tokens=MAX_TOKENS,
-                temperature=0,
-                stop=None,
-            )
-            #
-            print(response.choices[0].message.content)
-        else:
-            print(nlk_score)
-            print("too neutral")
+def get_complex_phrase_sentiment_score(passage: str) -> None:
+    """
+    Used when retrieving the sentiment scores of multiple companies in a singular sentence/paragraph.
+    """
+    nlk_score = sentiment_analyzer.polarity_scores(passage)
+    if nlk_score['neu'] < 0.5 or nlk_score["neg"] > 0.1 or nlk_score["pos"] > 0.1:
+        response = openai.ChatCompletion.create(
+            model=model_engine,
+            messages=[{"role": "system", "content": SET_UP_PROMPT + passage}],
+            max_tokens=MAX_TOKENS,
+            temperature=0,
+            stop=None,
+        )
+        #
+        print(response.choices[0].message.content)
+    else:
+        print(nlk_score)
+        print("too neutral")
+
+
+def get_sentiment_single(passage: str) -> float:
+    """
+    Returns the sentiment score for a passage ASSUMING THERE IS ONLY ONE STOCK MENTIONED IN THE PASSAGE
+    Uses ntlk's VADER
+
+    Preconditions:
+        - there is only ONE stock in the passage
+    """
+    # clean text by filtering out words that typically do not carry much meaning such as "and","the", "of"
+    # removing this "fluff" may improve accuracy, but also may not, hence this function will average it
+    stop_words = stopwords.words("english")
+    cleaned_text = ' '.join([word for word in passage.split() if word not in stop_words])
+
+    # return sentiment of the passage which is the average compound scores for the raw passage and the cleaned one
+    cleaned_score = sentiment_analyzer.polarity_scores(cleaned_text)['compound']
+    raw_score = sentiment_analyzer.polarity_scores(passage)['compound']
+    return (cleaned_score + raw_score) * 5
+
+
+def stocks_in_passage(passage: str) -> tuple[int, set]:
+    """
+    Returns a dictionary mapping stock mentioned to the number of times mentioned
+    """
+    stocks_mentioned, counter = set(), 0
+    words = passage.split()
+    tickers, names = StockInfo.get_tickers_and_names()
+
+    for word in words:
+        if word in tickers or word in names:
+            counter += 1
+            stocks_mentioned.add(word)
+
+    return counter, stocks_mentioned
+
+
+def get_sentiment_for_article(passage: int) -> dict[str, float]:
+    """
+    Returns a dictionary mapping a stock to it's associated sentiment based on article passages given
+    :param passages: all the scraped passages in the article
+    """
+
+def get_all_sentiment()
+
+
+def get_sentiment_for_multiple(passge: str) -> float:
+    """
+    Uses OpenAI
+    """
+    pass
