@@ -20,7 +20,7 @@ SEARCH_PARAMS = {
     "hl": "en-US",  # language
     "gl": "US",  # country of the search, US -> USA
     "ceid": "US:en",
-    "start": 10,
+    "start": 0,
     "tbm": "nws",
     "tbs": "qdr:",
 }
@@ -35,10 +35,6 @@ PUBLISH_RANGE = {
     'PastDay': 'd',
     'Recent': '',
 }
-
-@dataclass
-class NewsContent:
-    
 
 @dataclass
 class NewsArticle:
@@ -112,14 +108,15 @@ class NewsScraper:
         """
         number_of_articles_so_far = 0
         # configure search params
-        SEARCH_PARAMS.q = query + " stock"
-        SEARCH_PARAMS.tbs = "qdr:" + self.publish_range
-        while number_of_articles_so_far < number_of_articles:
+        SEARCH_PARAMS['start'] = 0
+        SEARCH_PARAMS['q'] = self.search_query
+        SEARCH_PARAMS['tbs'] = "qdr:" + self.publish_range
+        while number_of_articles_so_far < self.number_of_articles:
             # sleep for an arbitrary amount to avoid rate limiting
             time.sleep(random.uniform(0.25, 1))
             try:
                 # try to send a request and retrieve the articles from Google News
-                html = requests.get(NEWS_URL, params=search_params, headers=HEADERS, timeout=30)
+                html = requests.get(NEWS_URL, params=SEARCH_PARAMS, headers=HEADERS, timeout=30)
             except requests.exceptions.RequestException as e:
                 # something went wrong so abort the program
                 return False
@@ -135,7 +132,7 @@ class NewsScraper:
                 )]
                 number_of_articles_so_far += 1
             if soup.select_one('.BBwThe'):
-                search_params["start"] += 10
+                SEARCH_PARAMS["start"] += 10
             else:
                 break
 
@@ -158,6 +155,7 @@ class NewsScraper:
         self.search_query = search_query
         self.number_of_articles = number_of_articles
         self.publish_range = publish_range
+        self.articles_scraped = []
 
 
 @check_contracts

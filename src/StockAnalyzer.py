@@ -3,7 +3,7 @@ from typing import Optional
 from dataclasses import dataclass, field
 from CSV import read_file
 from StockInfo import get_info_from_ticker
-from NewsScraper import NewsArticle, NewsScraper
+from NewsScraper import NewsArticle, NewsScraper, PUBLISH_RANGE
 import json
 import os
 
@@ -81,6 +81,10 @@ class StockAnalyzerSettings:
         - id: a string representing the id associated with analyzation.
         - cache_root: a string representing the folder location of where the cached analyzed data should be stored.
         - output_info: a boolean representing if information should be printed to the console on the analyzation process
+
+    Representation Invariants:
+        - self.articles_per_ticker > 0
+        - any(PUBLISH_RANGE[key] == self.articles_publish_range for key in PUBLISH_RANGE)
     """
 
     id: str
@@ -88,6 +92,7 @@ class StockAnalyzerSettings:
     use_cache: bool = False
     cache_root: str = CACHE_DIRECTORY
     output_info: bool = True
+    articles_publish_range: str = PUBLISH_RANGE['Recent']
 
 
 class StockAnalyzer:
@@ -109,10 +114,11 @@ class StockAnalyzer:
 
     def _analyze_stock(self, ticker):
         stock_analyze_data = self._analyze_data[ticker]
-        number_of_articles_analyzed = len(stock_analyze_data)
-        stock_analyze_data.scraper:scrape_articles()
-        for news_article in stock_analyze_data.scraper:get_articles():
-            
+        stock_analyze_data.scraper.scrape_articles()
+        for news_article in stock_analyze_data.scraper.articles_scraped:
+            print(news_article.title)
+            print(news_article.url)
+
 
     def _build_data(self):
         """This private function is responsible for scraping news articles and building up data for the
@@ -192,6 +198,11 @@ class StockAnalyzer:
                         industry=stock_info['Industry'],
                         sentiment=0,
                     ),
+                    scraper=NewsScraper(
+                        search_query=stock_info['Name'] + ' stock competitors news',
+                        number_of_articles=self._settings.articles_per_ticker,
+                        publish_range=self._settings.articles_publish_range
+                    )
                 )
             else:
                 if self._settings.output_info:
