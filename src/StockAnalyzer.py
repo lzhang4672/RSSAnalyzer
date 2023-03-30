@@ -3,6 +3,7 @@ from typing import Optional
 from dataclasses import dataclass, field
 from CSV import read_file
 from StockInfo import get_info_from_ticker
+from NewsScraper import NewsArticle, NewsScraper
 import json
 import os
 
@@ -61,11 +62,10 @@ class StockAnalyzeData:
                             specific stock being mentioned in articles that focus specifically on the primary stock.
     """
     stock: Stock
+    scraper: NewsScraper
     primary_articles_data: list[tuple[str, float]] = field(default_factory=list)
     linking_articles_data: list[tuple[str, float]] = field(default_factory=list)
     connected_stocks: dict[Stock, int] = field(default_factory=list)
-    scraper:
-
 
 @dataclass
 class StockAnalyzerSettings:
