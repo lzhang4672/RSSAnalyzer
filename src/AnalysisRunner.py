@@ -5,6 +5,8 @@ from StockInfo import get_tickers
 from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
 
 
+print('test')
+
 # CONSTANTS
 default_settings = StockAnalyzerSettings(id='all_tickers', articles_per_ticker=20, use_cache=True,
                                          search_focus='Competitors')
