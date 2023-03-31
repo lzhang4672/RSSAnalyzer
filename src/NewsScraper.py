@@ -62,7 +62,7 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     Preconditions:
         - news_article.url is a legal url.
     """
-    texts = []
+    texts = ''
     try:
         # try to send a request and retrieve the article
         page = requests.get(url, headers=HEADERS)
@@ -79,11 +79,11 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     for passage in content:
         string = get_children_as_str(passage)
         if len(string.split()) > 1:  # has more than just 1 word
-            texts.extend(string.split('.'))
+            texts += string
 
     return NewsArticleContent(
         title=title,
-        sentences=texts
+        sentences=texts.split('. ')
     )
 
 
@@ -187,4 +187,5 @@ def remove_non_ascii(string: str) -> str:
     Helper method for get_children_as_str, and for handling strings
     Strips non ascii values from the given string and returns a new string without the values
     """
+    string = string.replace('\n', '')
     return ''.join([i if ord(i) < 128 else '' for i in string])
