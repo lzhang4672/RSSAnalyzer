@@ -4,15 +4,17 @@ Contains all the functions and classes for obtaining the sentiment for an articl
 from __future__ import annotations
 from typing import Optional
 import openai
+from openai.error import RateLimitError
 from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
-from StockAnalyzer import Stock
+from StockInfo import Stock
 from NewsScraper import NewsArticleContent
 from dataclasses import dataclass, field
-import json
+import ast
+import time
+import random
 import StockInfo
-
 import nltk
 import ssl
 
@@ -38,7 +40,7 @@ SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company that is 
                 "dictionary format with the companys' ticker as the keys. Do NOT provide any other output. Output " \
                 + PROMPT_ERROR + " on any errors.\n"
 MAX_TOKENS = 250
-
+OPENAI_MAX_REQUESTS = 3
 
 @dataclass
 class ArticleSentimentData:
@@ -58,26 +60,45 @@ def get_complex_phrase_sentiment_score(passage: str) -> dict[str, float]:
     """
     Used when retrieving the sentiment scores of multiple companies in a singular sentence/paragraph.
     """
-    response = openai.ChatCompletion.create(
-        model=model_engine,
-        messages=[{"role": "system", "content": SET_UP_PROMPT + passage}],
-        max_tokens=MAX_TOKENS,
-        temperature=0,
-        stop=None,
-    )
-    result = response.choices[0].message.content
+    time.sleep(random.uniform(0.05, 0.2))
+    request_tries = 1
+    result = None
+    while request_tries <= OPENAI_MAX_REQUESTS and result is None:
+        try:
+            response = openai.ChatCompletion.create(
+                model=model_engine,
+                messages=[{"role": "system", "content": SET_UP_PROMPT + passage}],
+                max_tokens=MAX_TOKENS,
+                temperature=0,
+                stop=None,
+            )
+            result = response.choices[0].message.content
+        except RateLimitError:
+            time.sleep(0.5)
+            print("Retry CHAT-GPT Api Call")
+            request_tries += 1
+    if result is None:
+        # somethign went wrong so return an empty dictioanry
+        return {}
     if result == PROMPT_ERROR:
         # somethign went wrong so return an empty dictionary
         return {}
     else:
         # return the result but parsed as a dictionary
-        response = json.loads(result)
-        tickers = StockInfo.get_tickers()
-        temp = list(response.keys())
-        for key in temp:
-            if key not in tickers:
-                response.pop(key)
-        return response
+        if result[0] != '{' or result[len(result) - 1] != '}':
+            # edge case of chat-gpt returning incorrect info.
+            return {}
+        try:
+            response = ast.literal_eval(result)
+            tickers = StockInfo.get_tickers()
+            temp = list(response.keys())
+            for key in temp:
+                if key not in tickers:
+                    response.pop(key)
+            return response
+        except (SyntaxError, ValueError):
+            # some decoding went wrong so return an empty dictionary
+            return {}
 
 
 def get_sentiment_single(passage: str) -> float:
@@ -107,10 +128,10 @@ def get_stocks_in_passage(passage: str) -> set:
     tickers, names = StockInfo.get_tickers_and_names()
     passage = ' ' + passage
 
-    # for tickers, use regular casing to find tickers
-    for ticker in tickers:
-        if " " + ticker + " " in passage or " " + ticker + "." in passage:
-            stocks_mentioned.add(ticker)
+    # # for tickers, use regular casing to find tickers
+    # for ticker in tickers:
+    #     if " " + ticker + " " in passage or " " + ticker + "." in passage:
+    #         stocks_mentioned.add(ticker)
 
     # for names, use all same casing (upper case)
     sentence = passage.upper()
