@@ -9,7 +9,7 @@ class StockGraphAnalyzer:
 
     Instance Attributes:
         - graph: a graph object representing the associated graph for a stock
-        -
+        - analyzer: a StockAnalyzer object that will hold the data needed to generate the graph's edges and nodes
     """
 
     def __init__(self) -> None:
