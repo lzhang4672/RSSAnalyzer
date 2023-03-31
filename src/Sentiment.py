@@ -104,7 +104,7 @@ def get_complex_phrase_sentiment_score(passage: str) -> dict[str, float]:
 def get_sentiment_single(passage: str) -> float:
     """
     Returns the sentiment score for a passage ASSUMING THERE IS ONLY ONE STOCK MENTIONED IN THE PASSAGE
-    Uses ntlk's VADER
+    Uses nltk's VADER
 
     Preconditions:
         - there is only ONE stock in the passage
@@ -128,21 +128,10 @@ def get_stocks_in_passage(passage: str) -> set:
     tickers, names = StockInfo.get_tickers_and_names()
     passage = ' ' + passage
 
-    # # for tickers, use regular casing to find tickers
-    # for ticker in tickers:
-    #     if " " + ticker + " " in passage or " " + ticker + "." in passage:
-    #         stocks_mentioned.add(ticker)
-
     # for names, use all same casing (upper case)
-    # sentence = passage.upper()
-    # for name in names:
-    #     if " " + name + " " in sentence or " " + name + "." in sentence:
-    #         stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
-
-    tokens = nltk.word_tokenize(passage.upper())
-    frequency_dist = ntlk.FreqDist(tokens)
+    sentence = passage.upper()
     for name in names:
-        if frequency_dist[name] >= 1:
+        if " " + name + " " in sentence or " " + name + "." in sentence:
             stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
 
     return stocks_mentioned

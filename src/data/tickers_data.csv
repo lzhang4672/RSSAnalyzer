@@ -22,7 +22,7 @@ EXC,Exelon,Utilities,41.348
 NEX,Nexa Resources,Metals and Mining,1.74
 FHN,First Horizon National,Financial Services,7.953
 SBSW,Sibanye Stillwater,Metals and Mining,5.879
-PBR-A,Petr�leo Brasileiro,Oil and Gas,61.503
+PBR-A,Petroleo,Oil and Gas,61.503
 BEKE,KE,Real Estate,23.786
 ELAN,Elanco Animal Health,Pharmacy and Health Care,4.598
 GE,General Electric,Conglomerate,98.178
@@ -41,7 +41,7 @@ HL,Hecla Mining,Metals and Mining,3.437
 NEE,NextEra Energy,Energy,149.738
 BSX,Boston Scientific,Medical Equipment,68.862
 CVX,Chevron,Oil and Gas,290.672
-BTG,B2Gold Corp.,Metals and Mining,3.942
+BTG,B2Gold,Metals and Mining,3.942
 AMCR,Amcor,Packaging,15.809
 CVS,CVS Health,Pharmacy and Health Care,95.262
 JNJ,Johnson & Johnson,Pharmacy and Health Care,477.46
@@ -55,12 +55,12 @@ WBA,Walgreens Boots Alliance,Pharmacy and Health Care,28.178
 HLN,Hamilton Lane,Investment Banking,36.338
 DASH,DoorDash,Food Delivery,23.544
 SQ,Square,Financial Services,44.67
-BMY,Bristol-Myers Squibb,Pharmacy and Health Care,139.411
+BMY,Bristol Myers Squibb,Pharmacy and Health Care,139.411
 KR,Kroger,Retail,33.343
 MRO,Marathon Oil,Oil and Gas,13.33
 HPQ,HP,Technology,27.574
 JBLU,JetBlue,Airlines,2.26
-DIDIY,DiDi ,Ride-hailing,16.941
+DIDIY,DiDi,Ride-hailing,16.941
 XM,Qualtrics,Customer Experience,10.707
 U,Unity,Technology,10.644
 TSM,TSMC,Semiconductors,465.399

@@ -254,37 +254,38 @@ class StockAnalyzer:
             # load the cached data into local variables
             for row in cached_data:
                 # get all row data
-                ticker = row['Ticker']
+                if row != {}:
+                    ticker = row['Ticker']
 
-                stock_analyze_data = self._analyze_data[ticker]
-                if stock_analyze_data:
-                    # the stock analyze data exists for the ticker
-                    if self._settings.output_info:
-                        print("Loading Cached Data For: " + ticker)
-                    print(row['ArticlesUrls'])
+                    stock_analyze_data = self._analyze_data[ticker]
+                    if stock_analyze_data:
+                        # the stock analyze data exists for the ticker
+                        if self._settings.output_info:
+                            print("Loading Cached Data For: " + ticker)
+                        print(row['ArticlesUrls'])
 
-                    primary_articles_analyzed = ast.literal_eval(row['ArticlesUrls'])
-                    primary_articles_sentiment_scores = ast.literal_eval(row['ArticlesSentimentScores'])
-                    connected_companies = ast.literal_eval(row['ConnectedTickers'])
-                    connected_frequencies = ast.literal_eval(row['ConnectedFrequency'])
-                    linking_articles_analyzed = ast.literal_eval(row['LinkingArticlesUrls'])
-                    linking_articles_sentiment_scores = ast.literal_eval(row['LinkingArticlesSentimentScores'])
-                    # load in primary articles data
-                    for i in range(len(primary_articles_analyzed)):
-                        article_link = primary_articles_analyzed[i]
-                        article_sentiment = primary_articles_sentiment_scores[i]
-                        stock_analyze_data.primary_articles_data += [(article_link, article_sentiment)]
-                    # load in linking articles data
-                    for i in range(len(linking_articles_analyzed)):
-                        article_link = linking_articles_analyzed[i]
-                        article_sentiment = linking_articles_sentiment_scores[i]
-                        stock_analyze_data.linking_articles_data += [(article_link, article_sentiment)]
-                    # load in connected stocks
-                    for i in range(len(connected_companies)):
-                        ticker, frequency = connected_companies[i], connected_frequencies[i]
-                        stock_analyze_data.connected_tickers[ticker] = frequency
-                    # update scraper
-                    stock_analyze_data.scraper.articles_scraped = primary_articles_analyzed
+                        primary_articles_analyzed = ast.literal_eval(row['ArticlesUrls'])
+                        primary_articles_sentiment_scores = ast.literal_eval(row['ArticlesSentimentScores'])
+                        connected_companies = ast.literal_eval(row['ConnectedTickers'])
+                        connected_frequencies = ast.literal_eval(row['ConnectedFrequency'])
+                        linking_articles_analyzed = ast.literal_eval(row['LinkingArticlesUrls'])
+                        linking_articles_sentiment_scores = ast.literal_eval(row['LinkingArticlesSentimentScores'])
+                        # load in primary articles data
+                        for i in range(len(primary_articles_analyzed)):
+                            article_link = primary_articles_analyzed[i]
+                            article_sentiment = primary_articles_sentiment_scores[i]
+                            stock_analyze_data.primary_articles_data += [(article_link, article_sentiment)]
+                        # load in linking articles data
+                        for i in range(len(linking_articles_analyzed)):
+                            article_link = linking_articles_analyzed[i]
+                            article_sentiment = linking_articles_sentiment_scores[i]
+                            stock_analyze_data.linking_articles_data += [(article_link, article_sentiment)]
+                        # load in connected stocks
+                        for i in range(len(connected_companies)):
+                            ticker, frequency = connected_companies[i], connected_frequencies[i]
+                            stock_analyze_data.connected_tickers[ticker] = frequency
+                        # update scraper
+                        stock_analyze_data.scraper.articles_scraped = primary_articles_analyzed
         # scrape for data if required
         if self._settings.output_info:
             print("Starting Web Scrape")
