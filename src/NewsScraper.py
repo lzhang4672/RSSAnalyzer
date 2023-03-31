@@ -13,13 +13,8 @@ import time
 
 # == CONSTANTS ==
 USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.44",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
 ]
 
 SEARCH_PARAMS = {
@@ -130,11 +125,12 @@ class NewsScraper:
         SEARCH_PARAMS['tbs'] = "qdr:" + self.publish_range
         while number_of_articles_so_far < self.number_of_articles:
             # sleep for an arbitrary amount to avoid rate limiting
-            time.sleep(random.uniform(1, 5))
+            time.sleep(random.uniform(2, 5))
             try:
                 # try to send a request and retrieve the articles from Google News
-                html = requests.get(NEWS_URL, params=SEARCH_PARAMS, headers={"User-Agent": get_random_header_agent()},
-                                    timeout=30)
+                header_agent = get_random_header_agent()
+                html = requests.get(NEWS_URL, params=SEARCH_PARAMS, headers={"User-Agent": header_agent},
+                                                                            timeout=30)
             except requests.exceptions.RequestException as e:
                 # something went wrong so abort the program
                 return False
