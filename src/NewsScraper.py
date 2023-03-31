@@ -130,7 +130,7 @@ class NewsScraper:
         SEARCH_PARAMS['tbs'] = "qdr:" + self.publish_range
         while number_of_articles_so_far < self.number_of_articles:
             # sleep for an arbitrary amount to avoid rate limiting
-            time.sleep(random.uniform(0.25, 1))
+            time.sleep(random.uniform(1, 5))
             try:
                 # try to send a request and retrieve the articles from Google News
                 html = requests.get(NEWS_URL, params=SEARCH_PARAMS, headers={"User-Agent": get_random_header_agent()},

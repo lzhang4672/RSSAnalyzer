@@ -182,7 +182,7 @@ class StockAnalyzer:
                 if len(stock_analyze_data.primary_articles_data) >= self._settings.articles_per_ticker:
                     break
                 # sleep for a bit to not get rate limited
-                time.sleep(random.uniform(0.1, 0.25))
+                time.sleep(random.uniform(1, 2))
                 has_analyzed = True
                 if not self.has_analyzed_linking_article_url(ticker, url):
                     news_article_content = get_content_from_article_url(url)
