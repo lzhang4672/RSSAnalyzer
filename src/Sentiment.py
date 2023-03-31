@@ -73,7 +73,7 @@ def get_complex_phrase_sentiment_score(passage: str) -> dict[str, float]:
         # return the result but parsed as a dictionary
         response = json.loads(result)
         tickers = StockInfo.get_tickers()
-        temp = response.keys()
+        temp = list(response.keys())
         for key in temp:
             if key not in tickers:
                 response.pop(key)
