@@ -22,7 +22,7 @@ EXC,Exelon,Utilities,41.348
 NEX,Nexa Resources,Metals and Mining,1.74
 FHN,First Horizon National,Financial Services,7.953
 SBSW,Sibanye Stillwater,Metals and Mining,5.879
-PBR-A,Petroleo,Oil and Gas,61.503
+PBR,Petroleo,Oil and Gas,61.503
 BEKE,KE,Real Estate,23.786
 ELAN,Elanco Animal Health,Pharmacy and Health Care,4.598
 GE,General Electric,Conglomerate,98.178
@@ -43,7 +43,7 @@ BSX,Boston Scientific,Medical Equipment,68.862
 CVX,Chevron,Oil and Gas,290.672
 BTG,B2Gold,Metals and Mining,3.942
 AMCR,Amcor,Packaging,15.809
-CVS,CVS Health,Pharmacy and Health Care,95.262
+CVS,CVS,Pharmacy and Health Care,95.262
 JNJ,Johnson & Johnson,Pharmacy and Health Care,477.46
 GGB,Gerdau,Metals and Mining,8.143
 CHPT,ChargePoint Holdings,Automotive,3.235
@@ -76,7 +76,7 @@ DKS,Dick's Sporting Goods,Retail,12.039
 RF,Regions Financial,Banking,16.631
 TCOM,Trip.com,Online Travel Booking,24.202
 DVN,Devon Energy,Energy,29.737
-PTON,Peloton ,Technology,3.49
+PTON,Peloton,Technology,3.49
 PYPL,PayPal,Financial Services,82.697
 CRWD,CrowdStrike,Cybersecurity,31.556
 UAL,United Airlines,Airlines,13.947
@@ -89,7 +89,7 @@ CSCO,Cisco,Technology,204.73
 ET,Energy Transfer,Energy,36.717
 DAL,Delta Airlines,Airlines,21.029
 APE,APi Group,Construction Services,4.727
-MRK,Merck & Co.,Pharmacy and Health Care,263.277
+MRK,Merck & Co,Pharmacy and Health Care,263.277
 RLX,RLX Technology,E-Cigarettes,3.831
 DISH,DISH Network,Media and Entertainment,4.903
 XOM,Exxon Mobil,Oil and Gas,407.017
@@ -102,7 +102,7 @@ WU,Western Union,Financial Services,3.992
 GM,General Motors,Automotive,46.462
 HPE,Hewlett Packard Enterprise,Technology,18.356
 GRAB,Grab Holdings,Ride-hailing,10.91
-LAZR,Luminar ,Technology,3.131
+LAZR,Luminar,Technology,3.131
 OXY,Occidental Petroleum,Oil and Gas,52.474
 RBLX,Roblox,Technology,26.711
 MPW,Medical Properties Trust,Real Estate,4.656
@@ -136,23 +136,22 @@ AAL,American Airlines,Airlines,8.957
 RIG,Transocean,Oil and Gas,4.136
 XPEV,XPeng,Automotive,7.754
 HBAN,Huntington Bancshares,Banking,15.062
-PCG,PG&E ,Utilities,36.49
+PCG,PG&E,Utilities,36.49
 UMPQ,Umpqua,Banking,3.833
 CMCSA,Comcast,Telecommunications,151.23
 MSFT,Microsoft,Technology,2084
-SIRI,Sirius XM ,Broadcasting,14.103
+SIRI,Sirius XM,Broadcasting,14.103
 KEY,KeyCorp,Banking,10.623
 GOLD,Barrick Gold,Metals and Mining,32.061
 PFE,Pfizer,Pharmacy and Health Care,225.555
-NU,Newmont ,Metals and Mining,21.764
+NU,Newmont,Metals and Mining,21.764
 VZ,Verizon,Telecommunications,153.107
 WFC,Wells Fargo,Banking,143.807
 GOOG,Alphabet,Technology,1307
-PBR,Petr�leo Brasileiro,Oil and Gas,64.406
 CCL,Carnival ,Leisure & Recreation,11.227
 PLTR,Palantir,Technology,16.633
 UBER,Uber,Ride-hailing,64.126
-ITUB,Ita� Unibanco,Banking,42.936
+ITUB,Itau Unibanco,Banking,42.936
 AI,C3.ai,Technology,2.454
 SOFI,SoFi,Financial Technology,4.346
 T,AT&T,Telecommunications,136
@@ -189,7 +188,7 @@ S,Sprint ,Telecommunications,4.274
 KOS,Kosmos Energy,Energy,2.78
 TOST,Toast,Technology,9.035
 GLW,Corning,Technology,27.801
-JCI,Johnson Controls ,Manufacturing,39.348
+JCI,Johnson Controls,Manufacturing,39.348
 COTY,Coty,Pharmacy and Health Care ,9.323
 WMT,Walmart,Retail,372.509
 AGNC,AGNC Investment,Financial Services,5.616
@@ -203,7 +202,7 @@ HIMS,Hims & Hers Health,Pharmacy and Health Care,2.068
 QS,QuantumScape,Manufacturing,3.306
 MTCH,Match Group,Technology,10.169
 FITB,Fifth Third Bancorp,Financial Services,17.054
-X,United States Steel ,Metals and Mining,5.472
+X,United States Steel,Metals and Mining,5.472
 RTX,Raytheon ,Manufacturing,140.307
 IOT,Samsara,Technology,9.911
 GNW,Genworth Financial,Financial Services,2.38

@@ -16,6 +16,11 @@ CACHE_HEADERS = [
     'Ticker', 'ArticlesUrls', 'ArticlesSentimentScores', 'ConnectedTickers', 'ConnectedFrequency',
     'LinkingArticlesUrls', 'LinkingArticlesSentimentScores'
 ]
+SEARCH_FOCUS = {
+    'Competitors': ' stock competitors news',
+    'Stock': ' stock news',
+    'General': ' news',
+}
 
 
 
@@ -69,7 +74,8 @@ class StockAnalyzerSettings:
 
     Representation Invariants:
         - self.articles_per_ticker > 0
-        - any(PUBLISH_RANGE[key] == self.articles_publish_range for key in PUBLISH_RANGE)
+        - any(key == self.articles_publish_range for key in PUBLISH_RANGE)
+        - any(key == self.search_focus for key in SEARCH_FOCUS)
     """
 
     id: str
@@ -77,7 +83,8 @@ class StockAnalyzerSettings:
     use_cache: bool = False
     cache_root: str = CACHE_DIRECTORY
     output_info: bool = True
-    articles_publish_range: str = PUBLISH_RANGE['Recent']
+    articles_publish_range: str = 'Recent'
+    search_focus: str = 'Stock'
 
 
 class StockAnalyzer:
@@ -182,7 +189,7 @@ class StockAnalyzer:
                 if len(stock_analyze_data.primary_articles_data) >= self._settings.articles_per_ticker:
                     break
                 # sleep for a bit to not get rate limited
-                time.sleep(random.uniform(1, 2))
+                time.sleep(random.uniform(0.1, 0.25))
                 has_analyzed = True
                 if not self.has_analyzed_linking_article_url(ticker, url):
                     news_article_content = get_content_from_article_url(url)
@@ -334,9 +341,9 @@ class StockAnalyzer:
                         sentiment=0,
                     ),
                     scraper=NewsScraper(
-                        search_query=stock_info['Name'] + ' stock',
+                        search_query=stock_info['Name'] + SEARCH_FOCUS[self._settings.search_focus],
                         number_of_articles=self._settings.articles_per_ticker,
-                        publish_range=self._settings.articles_publish_range
+                        publish_range=PUBLISH_RANGE[self._settings.articles_publish_range]
                     )
                 )
             else:
