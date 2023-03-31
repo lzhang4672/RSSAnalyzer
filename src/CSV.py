@@ -5,13 +5,11 @@ from typing import Any
 def read_file(file: str) -> list[dict[str, str]]:
     """Reads a csv file and returns it as a dictionary"""
     ret = []
-    if os.path.exists(file):
-        # check if path exists first
-        with open(file, errors='ignore') as csv_file:
-            reader = csv.reader(csv_file)
-            fields = next(reader)
-            for row in reader:
-                ret += [{fields[i]: row[i] for i in range(len(row))}]
+    with open(file, errors='ignore') as csv_file:
+        reader = csv.reader(csv_file)
+        fields = next(reader)
+        for row in reader:
+            ret += [{fields[i]: row[i] for i in range(len(row))}]
     return ret
 
 

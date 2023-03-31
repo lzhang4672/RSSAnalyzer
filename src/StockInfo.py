@@ -4,8 +4,7 @@ import csv
 from CSV import read_file
 from typing import Optional
 
-tickers = read_file('data/tickers_data.csv')
-
+tickers = read_file('src/data/tickers_data.csv')
 
 @dataclass
 class Stock:
@@ -72,3 +71,4 @@ def get_tickers_and_names() -> tuple[set, set]:
         symbols.add(element['Symbol'])
         names.add(element['Name'].upper())
     return symbols, names
+
