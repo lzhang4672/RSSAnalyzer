@@ -109,7 +109,7 @@ def get_stocks_in_passage(passage: str) -> set:
     # for names, use all same casing (upper case)
     sentence = passage.upper()
     for name in names:
-        if name in sentence:
+        if " " + name + " " in sentence or " " + name + "." in sentence:
             stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
 
     return stocks_mentioned
