@@ -4,7 +4,8 @@ Contains all the functions and classes for obtaining the sentiment for an articl
 from __future__ import annotations
 from typing import Optional
 import openai
-from transformers import BertTokenizer, BertForSequenceClassification, pipeline
+from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
 from StockAnalyzer import Stock
 from NewsScraper import NewsArticleContent
@@ -12,11 +13,21 @@ from dataclasses import dataclass, field
 import json
 import StockInfo
 
+import nltk
+import ssl
 
-# initalized finbert
-finbert = BertForSequenceClassification.from_pretrained('yiyanghkust/finbert-tone',num_labels=3)
-tokenizer = BertTokenizer.from_pretrained('yiyanghkust/finbert-tone')
-get_sentiment = pipeline("text-classification", model=finbert, tokenizer=tokenizer)
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
+
+
+# install vader_lexicon model
+nltk.downloader.download('stopwords')
+nltk.downloader.download('vader_lexicon')
+sentiment_analyzer = SentimentIntensityAnalyzer()
 
 # model constants
 openai.api_key = "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"
