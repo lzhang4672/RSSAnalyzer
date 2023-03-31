@@ -162,7 +162,6 @@ class Graph:
         """
         return self.nodes[name]
 
-        
 
 @check_contracts
 class IndustryGraph(Graph):
@@ -196,6 +195,8 @@ class IndustryGraph(Graph):
         """
         return super().get_node_by_name(name)
 
+
+@check_contracts
 class CompanyGraph(Graph):
     """
     Graph where the nodes are companies

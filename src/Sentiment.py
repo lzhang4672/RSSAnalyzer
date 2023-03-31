@@ -136,7 +136,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
 
         if len(passage_stocks) > 1:
             passage_stocks_sentiment = get_complex_phrase_sentiment_score(passage)
-            for stock in passage:
+            for stock in passage_stocks_sentiment:
                 if stock in sentiment_data:
                     sentiment_data[stock] = (sentiment_data[stock] + passage_stocks_sentiment[stock]) / 2
                 else:
