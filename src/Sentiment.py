@@ -153,7 +153,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
             passage_stock_score += sentiment_data.pop(main_stock.ticker)
 
     # adjustment for main stock - title is more heavily weighted
-    main_stock_score = (title_stock_score * 0.6) + (passage_stock_score * 0.4) / len(content)
+    main_stock_score = (title_stock_score * 0.65) + (passage_stock_score * 0.35) / len(content)
     # adjustment for other stocks since the article is not primarly focused on the other stocks, make it weigh
     # slightly less
     for stock in sentiment_data:
