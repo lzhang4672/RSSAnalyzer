@@ -334,7 +334,7 @@ class StockAnalyzer:
                         sentiment=0,
                     ),
                     scraper=NewsScraper(
-                        search_query=stock_info['Name'] + ' stock news',
+                        search_query=stock_info['Name'] + ' stock',
                         number_of_articles=self._settings.articles_per_ticker,
                         publish_range=self._settings.articles_publish_range
                     )
