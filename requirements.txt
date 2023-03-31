@@ -8,5 +8,3 @@ pandas
 transformers==4.27.4
 nltk
 openai
-torch
-transformers
