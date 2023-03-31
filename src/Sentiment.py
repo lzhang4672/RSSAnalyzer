@@ -34,10 +34,10 @@ sentiment_analyzer = SentimentIntensityAnalyzer()
 openai.api_key = "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"
 model_engine = "gpt-3.5-turbo"
 PROMPT_ERROR = 'ERROR'
-SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company " \
+SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company that is public on the market " \
                 "in a " \
-                "dictionary format as stock tickers. Do NOT provide any other output. Output " + PROMPT_ERROR + \
-                " on any errors.\n"
+                "dictionary format with the companys' ticker as the keys. Do NOT provide any other output. Output " \
+                + PROMPT_ERROR + " on any errors.\n"
 MAX_TOKENS = 250
 
 

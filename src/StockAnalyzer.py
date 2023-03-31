@@ -122,6 +122,11 @@ class StockAnalyzer:
         """Called to save the current progress of scraping to a csv file.
         """
         row_data = []
+        for ticker in self._analyze_data:
+            analyze_data: StockAnalyzeData = self._analyze_data[ticker]
+            symbol = analyze_data.stock.ticker
+
+
         # fill up row data
         write_to_file(CACHE_DIRECTORY + self._settings.id + '_cache.csv', CACHE_HEADERS, row_data)
 
