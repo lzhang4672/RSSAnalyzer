@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional
 from dataclasses import dataclass, field
-from CSV import read_file
+from CSV import read_file, write_to_file
 from StockInfo import get_info_from_ticker
 from NewsScraper import NewsArticleContent, NewsScraper, PUBLISH_RANGE
 import json
@@ -121,6 +121,9 @@ class StockAnalyzer:
     def _save_cache(self):
         """Called to save the current progress of scraping to a csv file.
         """
+        row_data = []
+        # fill up row data
+        write_to_file(CACHE_DIRECTORY + self._settings.id + '_cache.csv', CACHE_HEADERS, row_data)
 
 
 
@@ -145,7 +148,7 @@ class StockAnalyzer:
             if self._settings.output_info:
                 print("Loading Scrape Data From Cache")
             # load cached data if it exists
-            cached_data = read_file(CACHE_DIRECTORY + self._settings.id + '.csv')
+            cached_data = read_file(CACHE_DIRECTORY + self._settings.id + '_cache.csv')
             # load the cached data into local variables
             for row in cached_data:
                 # get all row data
