@@ -7,7 +7,7 @@ def read_file(file: str) -> list[dict[str, str]]:
     ret = []
     if os.path.exists(file):
         # check if path exists first
-        with open(file) as csv_file:
+        with open(file, errors='ignore') as csv_file:
             reader = csv.reader(csv_file)
             fields = next(reader)
             for row in reader:

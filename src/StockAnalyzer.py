@@ -46,7 +46,7 @@ class Stock:
     ticker: str
     market_cap: float
     industry: str
-    sentiment: float
+    sentiment: float = 0
 
 
 @dataclass
@@ -120,7 +120,7 @@ class StockAnalyzer:
     def _save_cache(self):
         """Called to save the current progress of scraping to a csv file.
         """
-        fields =
+
 
 
 

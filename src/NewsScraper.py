@@ -48,7 +48,7 @@ class NewsArticleContent:
         - url is in the format of a web url
     """
     title: str
-    paragraphs: list[str]
+    sentences: list[str]
 
 
 def get_content_from_article_url(url: str) -> NewsArticleContent | None:
@@ -83,7 +83,7 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
 
     return NewsArticleContent(
         title=title,
-        paragraphs=texts
+        sentences=texts
     )
 
 

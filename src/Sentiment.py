@@ -4,8 +4,10 @@ import openai
 from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
+from StockAnalyzer import Stock
 from NewsScraper import NewsArticleContent
 from dataclasses import dataclass, field
+import json
 import StockInfo
 
 import nltk
@@ -20,15 +22,18 @@ else:
 
 
 # install vader_lexicon model
+nltk.downloader.download('stopwords')
 nltk.downloader.download('vader_lexicon')
 sentiment_analyzer = SentimentIntensityAnalyzer()
 
 # model constants
 openai.api_key = "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"
 model_engine = "gpt-3.5-turbo"
+PROMPT_ERROR = 'ERROR'
 SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company " \
                 "in a " \
-                "dictionary format. Do NOT provide any other output. Output \"ERROR\" on any errors.\n"
+                "dictionary format as stock tickers. Do NOT provide any other output. Output " + PROMPT_ERROR + \
+                " on any errors.\n"
 MAX_TOKENS = 250
 
 
@@ -50,20 +55,23 @@ def get_complex_phrase_sentiment_score(passage: str) -> dict[str, float]:
     """
     Used when retrieving the sentiment scores of multiple companies in a singular sentence/paragraph.
     """
-    nlk_score = sentiment_analyzer.polarity_scores(passage)
-    if nlk_score['neu'] < 0.5 or nlk_score["neg"] > 0.1 or nlk_score["pos"] > 0.1:
-        response = openai.ChatCompletion.create(
-            model=model_engine,
-            messages=[{"role": "system", "content": SET_UP_PROMPT + passage}],
-            max_tokens=MAX_TOKENS,
-            temperature=0,
-            stop=None,
-        )
-        #
-        print(response.choices[0].message.content)
+    response = openai.ChatCompletion.create(
+        model=model_engine,
+        messages=[{"role": "system", "content": SET_UP_PROMPT + passage}],
+        max_tokens=MAX_TOKENS,
+        temperature=0,
+        stop=None,
+    )
+    result = response.choices[0].message.content
+    if result == PROMPT_ERROR:
+        # somethign went wrong so return an empty dictionary
+        return {}
     else:
-        print(nlk_score)
-        print("too neutral")
+        # return the result but parsed as a dictionary
+        return json.loads(result)
+
+
+
 
 
 def get_sentiment_single(passage: str) -> float:
@@ -91,9 +99,9 @@ def stocks_in_passage(passage: str) -> set:
     """
     stocks_mentioned = set()
     tickers, names = StockInfo.get_tickers_and_names()
-    sentence = passage.upper()
+    sentence = ' ' + passage.upper()
     for ticker in tickers:
-        if ticker in sentence:
+        if " " + ticker + " " in sentence or " " + ticker + "." in sentence:
             stocks_mentioned.add(ticker)
 
     for name in names:
@@ -103,7 +111,7 @@ def stocks_in_passage(passage: str) -> set:
     return stocks_mentioned
 
 
-def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle, content: list[str]) -> ArticleSentimentData:
+def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> ArticleSentimentData:
     """
     Returns sentiment data for an article
     """
@@ -112,14 +120,15 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle, cont
     sentiment_data = {}
     if len(title_stocks) > 1:
         sentiment_data.update(get_complex_phrase_sentiment_score(news_article.title))
-    else:
+    elif len(title_stocks) == 1:
         sentiment_data[title_stocks.pop()] = get_sentiment_single(news_article.title)
     if main_stock.ticker in sentiment_data:
         title_stock_score = sentiment_data.pop(main_stock.ticker)  # don't want main stock to be in other stocks dict
-
+    content = news_article.sentences
     passage_stock_score = 0
     for passage in content:
         passage_stocks = stocks_in_passage(passage)
+
         if len(passage_stocks) > 1:
             passage_stocks_sentiment = get_complex_phrase_sentiment_score(passage)
             for stock in passage:
@@ -127,7 +136,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle, cont
                     sentiment_data[stock] = (sentiment_data[stock] + passage_stocks_sentiment[stock]) / 2
                 else:
                     sentiment_data[stock] = passage_stocks_sentiment[stock]
-        else:
+        elif len(passage_stocks) == 1:
             sentiment_data[passage_stocks.pop()] = get_sentiment_single(passage)
         if main_stock.ticker in sentiment_data:
             passage_stock_score += sentiment_data.pop(main_stock.ticker)
