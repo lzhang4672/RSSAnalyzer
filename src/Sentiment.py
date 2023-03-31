@@ -1,3 +1,6 @@
+"""
+Contains all the functions and classes for obtaining the sentiment for an article.
+"""
 from __future__ import annotations
 from typing import Optional
 import openai
@@ -71,9 +74,6 @@ def get_complex_phrase_sentiment_score(passage: str) -> dict[str, float]:
         return json.loads(result)
 
 
-
-
-
 def get_sentiment_single(passage: str) -> float:
     """
     Returns the sentiment score for a passage ASSUMING THERE IS ONLY ONE STOCK MENTIONED IN THE PASSAGE
@@ -117,9 +117,10 @@ def get_stocks_in_passage(passage: str) -> set:
 
 def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> ArticleSentimentData:
     """
-    Returns the sentiment data for an article
+    Returns the sentiment data for an article.
+    Assumes main_stock is the stock that is mainly being analyzed here
     """
-    title_stocks = stocks_in_passage(news_article.title)
+    title_stocks = get_stocks_in_passage(news_article.title)
     title_stock_score = 0
     sentiment_data = {}
     if len(title_stocks) > 1:
@@ -131,7 +132,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
     content = news_article.sentences
     passage_stock_score = 0
     for passage in content:
-        passage_stocks = stocks_in_passage(passage)
+        passage_stocks = get_stocks_in_passage(passage)
 
         if len(passage_stocks) > 1:
             passage_stocks_sentiment = get_complex_phrase_sentiment_score(passage)
