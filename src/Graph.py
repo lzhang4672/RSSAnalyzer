@@ -126,12 +126,6 @@ class Graph:
         """
         raise NotImplementedError
 
-    def add_node_with_edges(self) -> None:
-        """
-        Adds a node as well as the edges it has
-        """
-        raise NotImplementedError
-
     def add_edge(self, u: Node, v: Node, u_v_weight, v_u_weight) -> None:
         """
         Add an edge between the two nodes in this graph.
@@ -152,7 +146,6 @@ class Graph:
         Raise a ValueError if the node does not appear in this graph.
         """
         return [neighbour for neighbour in node.edges]
-
 
     def get_node_by_name(self, name: str) -> Node:
         """
@@ -177,24 +170,6 @@ class IndustryGraph(Graph):
         new_node = IndustryNode(name, market_cap, sentiment)
         self.nodes[name] = new_node
 
-    def add_edge(self, u: Node, v: Node, u_v_weight: float, v_u_weight: float) -> None:
-        """
-        Adds an edge between two nodes in the graph
-        """
-        super.add_edge(u, v, u_v_weight, v_u_weight)
-
-    def get_neighbours_for_node(self, node: Node) -> list[Node]:
-        """
-        Returns the nodes that are connected with the current node in this graph.
-        """
-        return super().get_neighbours_for_node(node)
-
-    def get_node_by_name(self, name: str) -> Node:
-        """
-        Returns the node with the given name in the graph
-        """
-        return super().get_node_by_name(name)
-
 
 @check_contracts
 class CompanyGraph(Graph):
@@ -209,20 +184,11 @@ class CompanyGraph(Graph):
         new_node = CompanyNode(ticker, market_cap, industry, sentiment)
         self.nodes[name] = new_node
 
-    def add_edge(self, u: Node, v: Node, u_v_weight: float, v_u_weight: float) -> None:
-        """
-        Adds an edge to the graph
-        """
-        super.add_edge(u, v, u_v_weight, v_u_weight)
 
-    def get_neighbours_for_node(self, node: Node) -> list[Node]:
-        """
-        Returns the nodes that are connected with the current node in this graph.
-        """
-        return super.get_neighbours_for_node(node)
+def find_best_neighbour(graph: Graph, start_node: Node) -> list[Node]:
+    """
 
-    def get_node_by_name(self, name: str) -> Node:
-        """
-        Returns the node with the given name in the graph
-        """
-        return super.get_node_by_name(name)
+    """
+
+
+def construct_graph_from_data()

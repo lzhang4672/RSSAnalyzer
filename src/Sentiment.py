@@ -139,6 +139,12 @@ def get_stocks_in_passage(passage: str) -> set:
         if " " + name + " " in sentence or " " + name + "." in sentence:
             stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
 
+    # tokens = nltk.word_tokenize(passage.upper())
+    # frequency_dist = ntlk.FreqDist(tokens)
+    # for name in names:
+    #     if frequency_dist[name] >= 1:
+    #         stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
+
     return stocks_mentioned
 
 
