@@ -8,17 +8,17 @@ def update(data):
 		listbox.insert(END, item)
 
 def fillout(e):
-	# Delete whatever is in the entry box
 	entry.delete(0, END)
-
-	# Add clicked list item to entry box
 	entry.insert(0, listbox.get(ANCHOR))
 
 def check(e):
 	typed = entry.get()
 	length_of_typed = len(typed)
+
+	# if there are no characters in entrybox, return the default list
 	if typed == '':
 		data = wordbox
+	# if there is any character in the entrybox, search for data that contains the first occurance of the characters
 	else:
 		data = []
 		for item in wordbox:
@@ -26,9 +26,7 @@ def check(e):
 				data.append(item)
 	update(data)
 
-# Create a label
 label = Label(root, text="basic search box")
-
 label.pack(pady=20)
 
 
