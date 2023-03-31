@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 import bs4
 from python_ta.contracts import check_contracts
 from bs4 import BeautifulSoup
+from StockInfo import Stock
 import requests
 import time
 
@@ -65,7 +66,7 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     texts = ''
     try:
         # try to send a request and retrieve the article
-        page = requests.get(url, headers=HEADERS)
+        page = requests.get(url, headers=HEADERS, timeout=30)
     except requests.exceptions.RequestException as e:
         # something went wrong so return nothing
         return None
@@ -110,7 +111,7 @@ class NewsScraper:
             - query != ''
             - 0 < number_of_articles
         """
-        number_of_articles_so_far = 0
+        number_of_articles_so_far = len(self.articles_scraped)
         # configure search params
         SEARCH_PARAMS['start'] = 0
         SEARCH_PARAMS['q'] = self.search_query
