@@ -9,7 +9,8 @@ import os
 
 CACHE_DIRECTORY = 'scrape_cache/'
 CACHE_HEADERS = [
-    'Symbol', 'PrimaryArticlesAnalyzed', ''
+    'Symbol', 'PrimaryArticlesAnalyzed', 'ArticlesSentimentScores', 'ConnectedCompanies', 'ConnectedFrequency',
+    'ArticlesScraped', 'LinkingArticlesAnalyzed', 'LinkingArticlesSentimentScores'
 ]
 
 
@@ -120,6 +121,7 @@ class StockAnalyzer:
     def _save_cache(self):
         """Called to save the current progress of scraping to a csv file.
         """
+
 
 
 
