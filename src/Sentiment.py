@@ -4,8 +4,7 @@ Contains all the functions and classes for obtaining the sentiment for an articl
 from __future__ import annotations
 from typing import Optional
 import openai
-from nltk.sentiment import SentimentIntensityAnalyzer
-from nltk.corpus import stopwords
+from transformers import BertTokenizer, BertForSequenceClassification, pipeline
 from python_ta.contracts import check_contracts
 from StockAnalyzer import Stock
 from NewsScraper import NewsArticleContent
@@ -13,30 +12,20 @@ from dataclasses import dataclass, field
 import json
 import StockInfo
 
-import nltk
-import ssl
 
-try:
-    _create_unverified_https_context = ssl._create_unverified_context
-except AttributeError:
-    pass
-else:
-    ssl._create_default_https_context = _create_unverified_https_context
-
-
-# install vader_lexicon model
-nltk.downloader.download('stopwords')
-nltk.downloader.download('vader_lexicon')
-sentiment_analyzer = SentimentIntensityAnalyzer()
+# initalized finbert
+finbert = BertForSequenceClassification.from_pretrained('yiyanghkust/finbert-tone',num_labels=3)
+tokenizer = BertTokenizer.from_pretrained('yiyanghkust/finbert-tone')
+get_sentiment = pipeline("text-classification", model=finbert, tokenizer=tokenizer)
 
 # model constants
 openai.api_key = "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"
 model_engine = "gpt-3.5-turbo"
 PROMPT_ERROR = 'ERROR'
-SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company " \
+SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company that is public on the market " \
                 "in a " \
-                "dictionary format as stock tickers. Do NOT provide any other output. Output " + PROMPT_ERROR + \
-                " on any errors.\n"
+                "dictionary format with the companys' ticker as the keys. Do NOT provide any other output. Output " \
+                + PROMPT_ERROR + " on any errors.\n"
 MAX_TOKENS = 250
 
 
