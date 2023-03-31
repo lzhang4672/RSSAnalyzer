@@ -71,7 +71,12 @@ def get_complex_phrase_sentiment_score(passage: str) -> dict[str, float]:
         return {}
     else:
         # return the result but parsed as a dictionary
-        return json.loads(result)
+        response = json.loads(result)
+        tickers = StockInfo.get_tickers()
+        for key in response.keys():
+            if key not in tickers:
+                response.pop(key)
+        return response
 
 
 def get_sentiment_single(passage: str) -> float:
@@ -124,7 +129,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
     title_stock_score = 0
     sentiment_data = {}
     if len(title_stocks) > 1:
-        sentiment_data.update(get_complex_phrase_sentiment_score(news_article.title))
+        sentiment_data.update()
     elif len(title_stocks) == 1:
         sentiment_data[title_stocks.pop()] = get_sentiment_single(news_article.title)
     if main_stock.ticker in sentiment_data:
