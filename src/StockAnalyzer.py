@@ -88,15 +88,18 @@ class StockAnalyzer:
         - tickers: a list of stock tickers to be analyzed by the object.
      Private Instance Attributes:
         - _settings: a StockAnalyzerSettings object that represents the settings to be used when analyzing the stocks.
-        - _data: a dictionary containing all the data of the stocks analyzed
+        - _analyze_data: a dictionary containing all the data of the stocks analyzed
     """
 
     tickers: list[str]
     _settings: StockAnalyzerSettings
-    _analyze_data: dict[str, AnalyzeData] = {}
+    _analyze_data: dict[str, StockAnalyzeData] = {}
 
-
-
+    def get_data(self) -> dict[str, StockAnalyzeData]:
+        """
+        Getter method for _analyze_data attribute
+        """
+        return self._analyze_data
 
     def _save_cache(self):
         """Called to save the current progress of scraping to a csv file.

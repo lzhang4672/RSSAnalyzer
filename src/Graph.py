@@ -21,7 +21,10 @@ class Node:
 
     Instance Attributes:
         - name: name of the stock/company or industry
-        - neighbours: nodes connected to self
+        - edges: edges connected to this node
+
+    Representation Invariants:
+        - self.name != ''
     """
     name: str
     edges: set[Edge]
@@ -34,7 +37,7 @@ class Node:
 @check_contracts
 class CompanyNode(Node):
     """
-    A class representing a company/stock
+    A class representing a company/stock. CompanyNode stores the associated industry it falls under
 
     Instance Attributes:
         - ticker: the ticker for the stock
@@ -42,7 +45,10 @@ class CompanyNode(Node):
         - industry: the industry the company is in
         - sentiment: the sentiment rating between -10 to 10, associated with the stock
 
-    Preconditions:
+    Representation Invariants:
+        - self.ticker != ''
+        - 0 < self.market_cap
+        - self.industry != ''
         - -10 <= self.sentiment <= 10
     """
     ticker: str
@@ -61,22 +67,24 @@ class CompanyNode(Node):
 @check_contracts
 class IndustryNode(Node):
     """
-    A class representing an industry
+    A class representing an industry. IndustryNodes may have multiple CompanyNodes connected to it, given that the
+    company is under the industry
 
     Instance Attributes:
-        - market_cap: total worth of the industry, the sum of all market caps of companies in the industry
+        - industry_cap: total worth of the industry, the sum of all market caps of companies in the industry
         - sentiment: the sentiment rating from -10 to 10 of the entire industry, calculated from averaging all the
         sentiments of companies in the industry.
 
-    Preconditions:
+    Representation Invariants:
+        - 0 < self.industry_cap
         - -10 <= self.sentiment <= 10
     """
-    market_cap: float
+    industry_cap: float
     sentiment: float
 
-    def __init__(self, name: str, market_cap: float, sentiment: float):
+    def __init__(self, name: str, industry_cap: float, sentiment: float):
         super().__init__(name)
-        self.market_cap = market_cap
+        self.industry_cap = industry_cap
         self.sentiment = sentiment
 
 
@@ -113,27 +121,39 @@ class Edge:
 @check_contracts
 class Graph:
     """
-    Abstract class for graph
+    A class representing a graph that will store industry and company nodes
+
+    Instance Attributes:
+        - nodes: a dictionary mapping the node name to the node object
     """
     nodes: dict[str, Node]
 
     def __init__(self) -> None:
         self.nodes = {}
 
-    def add_node(self) -> None:
+    def add_industry_node(self, name: str, market_cap: float, sentiment: float) -> None:
         """
-        Adds a node to the graph
+        Adds an IndustryNode to the graph
         """
-        raise NotImplementedError
+        new_node = IndustryNode(name, market_cap, sentiment)
+        self.nodes[name] = new_node
 
-    def add_edge(self, u: Node, v: Node, u_v_weight, v_u_weight) -> None:
+    def add_company_node(self, name: str, ticker: str, market_cap: float, industry: str, sentiment: float) -> None:
+        """
+        Adds an CompanyNode to the graph
+        """
+        new_node = CompanyNode(name, ticker, market_cap, industry, sentiment)
+        self.nodes[name] = new_node
+
+    def add_edge(self, u: str, v: str, u_v_weight, v_u_weight) -> None:
         """
         Add an edge between the two nodes in this graph.
 
         Raise a ValueError if any of the nodes do not appear in this graph.
         """
         if u in self.nodes and v in self.nodes:
-            new_edge = Edge(u, v, u_v_weight, v_u_weight)
+            u_node, v_node = self.nodes[u], self.nodes[v]
+            new_edge = Edge(u_node, v_node, u_v_weight, v_u_weight)
             u.edges.append(new_edge)
             v.edges.append(new_edge)
         else:
@@ -154,41 +174,3 @@ class Graph:
         Raise ValueError if the node with the given name is not in this graph.
         """
         return self.nodes[name]
-
-
-@check_contracts
-class IndustryGraph(Graph):
-    """
-    Graph where nodes are industries
-    """
-
-    @override
-    def add_node(self, name: str, market_cap: float, sentiment: float) -> None:
-        """
-        Adds an IndustryNode to the graph
-        """
-        new_node = IndustryNode(name, market_cap, sentiment)
-        self.nodes[name] = new_node
-
-
-@check_contracts
-class CompanyGraph(Graph):
-    """
-    Graph where the nodes are companies
-    """
-    @override
-    def add_node(self, ticker: str, market_cap: float, industry: str, sentiment: float) -> None:
-        """
-        Adds an CompanyNode to the graph
-        """
-        new_node = CompanyNode(ticker, market_cap, industry, sentiment)
-        self.nodes[name] = new_node
-
-
-def find_best_neighbour(graph: Graph, start_node: Node) -> list[Node]:
-    """
-
-    """
-
-
-def construct_graph_from_data()
