@@ -120,7 +120,7 @@ class StockAnalyzer:
     def _save_cache(self):
         """Called to save the current progress of scraping to a csv file.
         """
-        
+
 
 
 
