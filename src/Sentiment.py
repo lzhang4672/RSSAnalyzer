@@ -11,6 +11,7 @@ from StockAnalyzer import Stock
 from NewsScraper import NewsArticleContent
 from dataclasses import dataclass, field
 import json
+import torch
 import StockInfo
 
 import nltk
@@ -107,10 +108,10 @@ def get_stocks_in_passage(passage: str) -> set:
     tickers, names = StockInfo.get_tickers_and_names()
     passage = ' ' + passage
 
-    # for tickers, use regular casing to find tickers
-    for ticker in tickers:
-        if " " + ticker + " " in passage or " " + ticker + "." in passage:
-            stocks_mentioned.add(ticker)
+    # # for tickers, use regular casing to find tickers
+    # for ticker in tickers:
+    #     if " " + ticker + " " in passage or " " + ticker + "." in passage:
+    #         stocks_mentioned.add(ticker)
 
     # for names, use all same casing (upper case)
     sentence = passage.upper()
