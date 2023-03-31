@@ -93,17 +93,21 @@ def get_sentiment_single(passage: str) -> float:
     return (cleaned_score + raw_score) * 5
 
 
-def stocks_in_passage(passage: str) -> set:
+def get_stocks_in_passage(passage: str) -> set:
     """
     Returns a set containing all the stocks mentioned in the passage as a ticker
     """
     stocks_mentioned = set()
     tickers, names = StockInfo.get_tickers_and_names()
-    sentence = ' ' + passage.upper()
+    passage = ' ' + passage
+
+    # for tickers, use regular casing to find tickers
     for ticker in tickers:
-        if " " + ticker + " " in sentence or " " + ticker + "." in sentence:
+        if " " + ticker + " " in passage or " " + ticker + "." in passage:
             stocks_mentioned.add(ticker)
 
+    # for names, use all same casing (upper case)
+    sentence = passage.upper()
     for name in names:
         if name in sentence:
             stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
@@ -113,7 +117,7 @@ def stocks_in_passage(passage: str) -> set:
 
 def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> ArticleSentimentData:
     """
-    Returns sentiment data for an article
+    Returns the sentiment data for an article
     """
     title_stocks = stocks_in_passage(news_article.title)
     title_stock_score = 0
