@@ -134,16 +134,16 @@ def get_stocks_in_passage(passage: str) -> set:
     #         stocks_mentioned.add(ticker)
 
     # for names, use all same casing (upper case)
-    sentence = passage.upper()
-    for name in names:
-        if " " + name + " " in sentence or " " + name + "." in sentence:
-            stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
-
-    # tokens = nltk.word_tokenize(passage.upper())
-    # frequency_dist = ntlk.FreqDist(tokens)
+    # sentence = passage.upper()
     # for name in names:
-    #     if frequency_dist[name] >= 1:
+    #     if " " + name + " " in sentence or " " + name + "." in sentence:
     #         stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
+
+    tokens = nltk.word_tokenize(passage.upper())
+    frequency_dist = ntlk.FreqDist(tokens)
+    for name in names:
+        if frequency_dist[name] >= 1:
+            stocks_mentioned.add(StockInfo.get_ticker_from_name(name))
 
     return stocks_mentioned
 
