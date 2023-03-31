@@ -4,7 +4,7 @@ import csv
 from CSV import read_file
 from typing import Optional
 
-tickers = read_file('src/data/tickers_data.csv')
+tickers = read_file('data/tickers_data.csv')
 
 @dataclass
 class Stock:

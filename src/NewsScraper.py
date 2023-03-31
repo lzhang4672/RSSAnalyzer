@@ -12,10 +12,15 @@ import requests
 import time
 
 # == CONSTANTS ==
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/100.0.4896.88 Safari/537.36"
-}
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.44",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0"
+]
 
 SEARCH_PARAMS = {
     "hl": "en-US",  # language
@@ -52,6 +57,9 @@ class NewsArticleContent:
     sentences: list[str]
 
 
+def get_random_header_agent() -> str:
+    return random.choice(USER_AGENTS)
+
 def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     """
     Returns a NewsArticleContentObject that contains the content for the article
@@ -66,7 +74,7 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     texts = ''
     try:
         # try to send a request and retrieve the article
-        page = requests.get(url, headers=HEADERS, timeout=30)
+        page = requests.get(url, headers={"User-Agent": get_random_header_agent()}, timeout=30)
     except requests.exceptions.RequestException as e:
         # something went wrong so return nothing
         return None
@@ -74,7 +82,11 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     soup = BeautifulSoup(page.content, 'html.parser')
 
     tags = {'p'}
-    title = str(soup.find('title').string)
+    found_title = soup.find('title')
+    if found_title:
+        title = str(found_title.string)
+    else:
+        title = ""
     content = soup.find_all(tags)
 
     for passage in content:
@@ -121,7 +133,8 @@ class NewsScraper:
             time.sleep(random.uniform(0.25, 1))
             try:
                 # try to send a request and retrieve the articles from Google News
-                html = requests.get(NEWS_URL, params=SEARCH_PARAMS, headers=HEADERS, timeout=30)
+                html = requests.get(NEWS_URL, params=SEARCH_PARAMS, headers={"User-Agent": get_random_header_agent()},
+                                    timeout=30)
             except requests.exceptions.RequestException as e:
                 # something went wrong so abort the program
                 return False

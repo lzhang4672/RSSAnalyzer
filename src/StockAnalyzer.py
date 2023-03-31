@@ -11,7 +11,7 @@ import ast
 import random
 import os
 
-CACHE_DIRECTORY = './scrape_cache/'
+CACHE_DIRECTORY = 'scrape_cache/'
 CACHE_HEADERS = [
     'Ticker', 'ArticlesUrls', 'ArticlesSentimentScores', 'ConnectedTickers', 'ConnectedFrequency',
     'LinkingArticlesUrls', 'LinkingArticlesSentimentScores'
@@ -333,7 +333,7 @@ class StockAnalyzer:
                         sentiment=0,
                     ),
                     scraper=NewsScraper(
-                        search_query=stock_info['Symbol'] + ' competitors news',
+                        search_query=stock_info['Name'] + ' stock competitors',
                         number_of_articles=self._settings.articles_per_ticker,
                         publish_range=self._settings.articles_publish_range
                     )
