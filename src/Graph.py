@@ -130,12 +130,11 @@ class Graph:
         new_node = IndustryNode(name, market_cap, sentiment)
         self.nodes[name] = new_node
 
-    def add_company_node(self, name: str, ticker: str, market_cap: float, industry: str, sentiment: float) -> None:
+    def add_company_node(self, node: CompanyNode) -> None:
         """
-        Adds an CompanyNode to the graph
+        Adds a CompanyNode to the graph
         """
-        new_node = CompanyNode(name, ticker, market_cap, industry, sentiment)
-        self.nodes[name] = new_node
+        self.nodes[node.name] = new_node
 
     def add_edge(self, u: str, v: str, u_v_weight, v_u_weight) -> None:
         """

@@ -1,5 +1,5 @@
 import os
-os.chdir(os.path.dirname(os.path.abspath(file)))
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 import StockAnalyzer
 from StockInfo import get_tickers
 from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
@@ -16,5 +16,5 @@ def run_analysis() -> None:
     analyzer = StockAnalyzer(tickers, default_settings)
 
 
-if name == 'main':
+if __name__ == '__main__':
     run_analysis()
