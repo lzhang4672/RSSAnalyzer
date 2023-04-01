@@ -12,6 +12,11 @@ please consult our Course Syllabus.
 
 This file is Copyright (c) 2023 Mark Zhang, Li Zhang and Luke Zhang
 """
+from __future__ import annotations
+from python_ta.contracts import check_contracts
+
+
+from typing import Any
 
 
 @check_contracts
@@ -27,10 +32,12 @@ class Node:
         - self.name != ''
     """
     name: str
+    neighbours: set[Node]
     edges: set[Edge]
 
     def __init__(self, name: str) -> None:
         self.name = name
+        self.neighbours = set()
         self.edges = set()
 
 
@@ -60,8 +67,11 @@ class CompanyNode(Node):
         super().__init__(name)
         self.ticker = ticker
         self.market_cap = market_cap
-        self.industry: industry
+        self.industry = industry
         self.sentiment = sentiment
+
+    def __str__(self) -> str:
+        return f'<{self.name}: ticker={self.ticker},sen={self.sentiment},industry={self.industry}>'
 
 
 @check_contracts
@@ -87,28 +97,33 @@ class IndustryNode(Node):
         self.industry_cap = industry_cap
         self.sentiment = sentiment
 
+    def __str__(self) -> str:
+        return f'<{self.name}:cap={self.industry_cap},sen={self.sentiment}>'
+
 
 class Edge:
     """
     A class representing the edge of the graph
 
     Note that this edge is weighted based on frequency (for CompanyNode to CompanyNode)
-    or weighted baesd on market cap (for IndustryNode to CompanyNode)
+    or weighted based on market cap (for IndustryNode to CompanyNode)
 
     Instance Attributes:
         - u: an IndustryNode or CompanyNode on one end of this edge
         - v: an IndustryNode or CompanyNode on the other end of this edge
-        - weight: the weight of the edge
+        - u_v_weight: the weight of the edge going from node u to node v
+        - v_u_weight: the weight of the edge going from node v to node u
     """
     u: Node
     v: Node
-    weight: float
+    u_v_weight: float
+    v_u_weight: float
 
-    def __init__(self, u: Node, v: Node, weight: float) -> None:
+    def __init__(self, u: Node, v: Node, u_v_weight: float, v_u_weight: float) -> None:
         self.u = u
         self.v = v
-        self.weight = weight
-        # self.v_u_weight = v_u_weight
+        self.u_v_weight = u_v_weight
+        self.v_u_weight = v_u_weight
 
 
 @check_contracts
@@ -120,9 +135,11 @@ class Graph:
         - nodes: a dictionary mapping the node name to the node object
     """
     nodes: dict[str, Node]
+    edges: dict[tuple[str, str], Edge]
 
     def __init__(self) -> None:
         self.nodes = {}
+        self.edges = {}
 
     def add_industry_node(self, name: str, industry_cap: float, sentiment: float) -> None:
         """
@@ -135,9 +152,9 @@ class Graph:
         """
         Adds a CompanyNode to the graph
         """
-        self.nodes[node.name] = new_node
+        self.nodes[node.ticker] = node
 
-    def add_edge(self, u: str, v: str, weight: float) -> None:
+    def add_edge(self, u: str, v: str, u_v_weight: float, v_u_weight: float) -> None:
         """
         Add an edge between the two nodes in this graph.
 
@@ -145,9 +162,13 @@ class Graph:
         """
         if u in self.nodes and v in self.nodes:
             u_node, v_node = self.nodes[u], self.nodes[v]
-            new_edge = Edge(u_node, v_node, weight)
-            u.edges.add(new_edge)
-            v.edges.add(new_edge)
+            new_edge = Edge(u_node, v_node, u_v_weight, v_u_weight)
+            u_node.neighbours.add(v_node)
+            v_node.neighbours.add(u_node)
+            u_node.edges.add(new_edge)
+            v_node.edges.add(new_edge)
+            self.edges[(u, v)] = new_edge
+            self.edges[(v, u)] = new_edge
         else:
             raise ValueError
 
@@ -166,3 +187,12 @@ class Graph:
         Raise ValueError if the node with the given name is not in this graph.
         """
         return self.nodes[name]
+
+    def remove_edge(self, edge: Edge) -> None:
+        """
+        Removes edge from the graph
+        """
+        u, v = edge.u.name, edge.v.name
+        self.nodes[u].edges.remove(edge)
+        self.nodes[v].edges.remove(edge)
+        self.graph.edges.remove(edge)
