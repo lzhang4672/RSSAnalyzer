@@ -154,8 +154,8 @@ class Graph:
         if u in self.nodes and v in self.nodes:
             u_node, v_node = self.nodes[u], self.nodes[v]
             new_edge = Edge(u_node, v_node, u_v_weight, v_u_weight)
-            u.edges.append(new_edge)
-            v.edges.append(new_edge)
+            u.edges.add(new_edge)
+            v.edges.add(new_edge)
         else:
             raise ValueError
 
