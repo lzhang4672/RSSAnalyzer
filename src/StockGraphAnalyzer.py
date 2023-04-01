@@ -36,12 +36,16 @@ class StockGraphAnalyzer:
         #     based off of a StockAnalyzeData object
         for ticker in tickers:
             ticker_info = get_info_from_ticker(ticker)
+            primary_sentiment = sum(i[1] for i in data[ticker].primary_articles_data) / \
+                                len(data[ticker].primary_articles_data)
+            relational_sentiment = sum(i[1] for i in data[ticker].linking_articles_data) / \
+                                   len(data[ticker].linking_articles_data)
             new_node = CompanyNode(
                 name=ticker_info['Name'],
                 ticker=ticker,
                 market_cap=ticker_info['Market Cap'],
                 industry=ticker_info['Industry'],
-                sentiment=sum(i[0] for i in data[ticker].primary_articles_data) / len(data[ticker])
+                sentiment=primary_sentiment * 0.8 + relational_sentiment * 0.2
             )
             self.graph.add_company_node(new_node)
 
@@ -81,3 +85,11 @@ class StockGraphAnalyzer:
         Preconditions:
             - Assumes the graph has already added all edges for CompanyNodes
         """
+
+    def get_best_neighbour(self, node: Node) -> Node | None:
+        """
+        Returns the best neighbouring node to the node given.
+        If the node is not connected to any other nodes, or all connected nodes have a lower sentiment, returns None
+        """
+
+    def
