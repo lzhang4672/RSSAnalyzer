@@ -30,7 +30,7 @@ class StockGraphAnalyzer:
         industries = {}
 
         # add all the company nodes first
-        # NOTE: for sentiment parameter: alculates the average sentiment based on the articles scraped
+        # NOTE: for sentiment parameter: calculates the average sentiment based on the articles scraped
         #     Essentially, StockAnalyzeData.primary_articles_data stores a list of tuples corresponding to
         #     (url, sentiment from that url), so this private function will calculate average overall sentiment
         #     based off of a StockAnalyzeData object
