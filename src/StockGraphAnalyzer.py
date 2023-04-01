@@ -35,7 +35,7 @@ class StockGraphAnalyzer:
         #     (url, sentiment from that url), so this private function will calculate average overall sentiment
         #     based off of a StockAnalyzeData object
         for ticker in tickers:
-            ticker_info = get_info_from_ticker(ticker)
+            ticker_info = data.stock
             primary_sentiment = sum(i[1] for i in data[ticker].primary_articles_data) / \
                                 len(data[ticker].primary_articles_data)
             relational_sentiment = sum(i[1] for i in data[ticker].linking_articles_data) / \
@@ -92,4 +92,14 @@ class StockGraphAnalyzer:
         If the node is not connected to any other nodes, or all connected nodes have a lower sentiment, returns None
         """
 
-    def
+    def find_community(self) -> set[list[Node]]:
+        """
+        Returns a set of lists. Each list is a set
+        """
+
+
+def _get_edge_highest_betweenness(graph: Graph) -> list[Edge]:
+    """
+    Private helper method for finding communities
+    Returns the edge(s) with the highest "between-ness" as per the Girvan Newman Algorithm
+    """
