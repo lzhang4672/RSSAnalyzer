@@ -5,6 +5,7 @@ File containing all methods for webscraping
 import random
 from dataclasses import dataclass, field
 import bs4
+from typing import Union
 from python_ta.contracts import check_contracts
 from bs4 import BeautifulSoup
 from StockInfo import Stock
@@ -51,10 +52,41 @@ class NewsArticleContent:
     title: str
     sentences: list[str]
 
+@check_contracts
+def get_children_as_str(obj: bs4.element.Tag | bs4.element.NavigableString) -> str:
+    """
+    Helper method for get_texts_containing
+    Returns a string that concatenates the string elements inside the HTML tags based on the object passed in
 
+    The bs4 object is a tree with a representation structure of the HTML of the website. This function will
+    concatenate the elements inside the children of the object
+    (ie. for <p>hello <strong>world</strong></p>, the object is the entire <p>, the children is the <strong> elem.)
+
+    Preconditions:
+        - obj is a bs4 object that represents the HTML corresponding to a website
+    """
+    if isinstance(obj, bs4.element.NavigableString):
+        return remove_non_ascii(str(obj))
+    else:
+        cur_str = ''
+        for child in obj.children:
+            cur_str += get_children_as_str(child)
+        return cur_str
+
+
+@check_contracts
+def remove_non_ascii(string: str) -> str:
+    """
+    Helper method for get_children_as_str, and for handling strings
+    Strips non ascii values from the given string and returns a new string without the values
+    """
+    string = string.replace('\n', '')
+    return ''.join([i if ord(i) < 128 else '' for i in string])
+
+@check_contracts
 def get_random_header_agent() -> str:
     return random.choice(USER_AGENTS)
-
+@check_contracts
 def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     """
     Returns a NewsArticleContentObject that contains the content for the article
@@ -83,7 +115,6 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     else:
         title = ""
     content = soup.find_all(tags)
-
     for passage in content:
         string = get_children_as_str(passage)
         if len(string.split()) > 1:  # has more than just 1 word
@@ -94,7 +125,7 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
         sentences=texts.split('. ')
     )
 
-
+@check_contracts
 class NewsScraper:
     """This class will handle the scraping process
 
@@ -110,6 +141,7 @@ class NewsScraper:
     articles_scraped: list[str]
     publish_range: str
 
+    @check_contracts
     def scrape_articles(self) -> bool:
         """Scrapes the specified amount of articles stated in self.number_of_articles
         Returns true of the scraping was successful, false otherwise.
@@ -130,7 +162,7 @@ class NewsScraper:
                 # try to send a request and retrieve the articles from Google News
                 header_agent = get_random_header_agent()
                 html = requests.get(NEWS_URL, params=SEARCH_PARAMS, headers={"User-Agent": header_agent},
-                                                                            timeout=30)
+                                                                            timeout=5)
             except requests.exceptions.RequestException as e:
                 # something went wrong so abort the program
                 return False
@@ -149,12 +181,14 @@ class NewsScraper:
 
         return True
 
+    @check_contracts
     def get_articles(self) -> list[str]:
         """
         Returns the url of the articles scraped
         """
         return self.articles_scraped
 
+    @check_contracts
     def __init__(self, search_query: str, number_of_articles: int, publish_range: str):
         """Constructor for a NewsScraper object
 
@@ -167,35 +201,3 @@ class NewsScraper:
         self.number_of_articles = number_of_articles
         self.publish_range = publish_range
         self.articles_scraped = []
-
-
-@check_contracts
-def get_children_as_str(obj: bs4.element.NavigableString | bs4.element.Tag) -> str:
-    """
-    Helper method for get_texts_containing
-    Returns a string that concatenates the string elements inside the HTML tags based on the object passed in
-
-    The bs4 object is a tree with a representation structure of the HTML of the website. This function will
-    concatenate the elements inside the children of the object
-    (ie. for <p>hello <strong>world</strong></p>, the object is the entire <p>, the children is the <strong> elem.)
-
-    Preconditions:
-        - obj is a bs4 object that represents the HTML corresponding to a website
-    """
-    if isinstance(obj, bs4.NavigableString):
-        return remove_non_ascii(str(obj))
-    else:
-        cur_str = ''
-        for child in obj.children:
-            cur_str += get_children_as_str(child)
-        return cur_str
-
-
-@check_contracts
-def remove_non_ascii(string: str) -> str:
-    """
-    Helper method for get_children_as_str, and for handling strings
-    Strips non ascii values from the given string and returns a new string without the values
-    """
-    string = string.replace('\n', '')
-    return ''.join([i if ord(i) < 128 else '' for i in string])

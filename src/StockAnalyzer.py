@@ -195,6 +195,7 @@ class StockAnalyzer:
                 time.sleep(random.uniform(0.1, 0.25))
                 has_analyzed = True
                 if not self.has_analyzed_linking_article_url(ticker, url):
+                    print(url)
                     news_article_content = get_content_from_article_url(url)
                     if news_article_content:
                         if self._settings.output_info:
