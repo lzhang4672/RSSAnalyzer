@@ -44,8 +44,11 @@ class StockGraphAnalyzer:
             )
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
-        visited_edges = {}
         for ticker in tickers:
             connected = data[ticker].connected_tickers
             for neighbour in connected:
                 self.graph.add_edge(ticker, neighbour, connected[neighbour])
+
+        # add industry nodes
+        for
+    def get_industry_connectivity(self):

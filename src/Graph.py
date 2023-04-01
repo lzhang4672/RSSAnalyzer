@@ -97,25 +97,17 @@ class Edge:
     Instance Attributes:
         - u: an IndustryNode or CompanyNode on one end of this edge
         - v: an IndustryNode or CompanyNode on the other end of this edge
-        - u_v_weight: weight for the edge going from u to v
-        - v_u_weight: weight for edge going from v to u
+        - weight: the weight of the edge
     """
     u: Node
     v: Node
-    u_v_weight: float
-    v_u_weight: float
+    weight: float
 
-    def __init__(self, u: Node, v: Node, u_v_weight: float, v_u_weight: float) -> None:
+    def __init__(self, u: Node, v: Node, weight: float) -> None:
         self.u = u
         self.v = v
-        self.u_v_weight = u_v_weight
-        self.v_u_weight = v_u_weight
-
-    def get_weight(self) -> float:
-        """
-        Returns the average weight of the edge
-        """
-        return (self.u_v_weight + self.v_u_weight) / 2
+        self.weight = weight
+        # self.v_u_weight = v_u_weight
 
 
 @check_contracts
