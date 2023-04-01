@@ -3,7 +3,7 @@ File for graphs generated based on a stock and functions related to navigatign t
 """
 from Graph import Graph, CompanyNode, IndustryNode
 from StockAnalyzer import StockAnalyzer
-from StockInfo import get_info_from_ticker, get_tickers
+from StockInfo import get_info_from_ticker, get_tickers, get_industries
 
 
 class StockGraphAnalyzer:
@@ -27,6 +27,7 @@ class StockGraphAnalyzer:
         """
         tickers = self.analyzer.tickers
         data = self.analyzer.get_data()
+        industries = {}
 
         # add all the company nodes first
         # NOTE: for sentiment parameter: alculates the average sentiment based on the articles scraped
@@ -35,17 +36,33 @@ class StockGraphAnalyzer:
         #     based off of a StockAnalyzeData object
         for ticker in tickers:
             ticker_info = get_info_from_ticker(ticker)
-            self.graph.add_company_node(
+            new_node = CompanyNode(
                 name=ticker_info['Name'],
                 ticker=ticker,
                 market_cap=ticker_info['Market Cap'],
                 industry=ticker_info['Industry'],
                 sentiment=sum(i[0] for i in data[ticker].primary_articles_data) / len(data[ticker])
             )
+            self.graph.add_company_node(new_node)
+
+            # will be used when adding industry nodes to graph
+            if ticker_info['Industry'] not in industries:
+                industries[ticker_info['Industry']] = ([ticker], [new_node.sentiment], new_node.market_cap)
+            else:
+                industries[ticker_info['Industry']][0].append(ticker)
+                industries[ticker_info['Industry']][1].append(new_node.sentiment)
+                industries[ticker_info['Industry']][2] += new_node.market_cap
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
-        visited_edges = {}
         for ticker in tickers:
             connected = data[ticker].connected_tickers
             for neighbour in connected:
                 self.graph.add_edge(ticker, neighbour, connected[neighbour])
+
+        # add industry nodes
+
+    def get_industry_connectivity(self) -> dict[str, float]:
+        """
+        Returns how well each industry node connects to other industry nodes based on the edges that cross
+        connect the nodes from the different industries
+        """
