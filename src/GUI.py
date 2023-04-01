@@ -84,6 +84,7 @@ class SearchBar:
 
 if __name__ == "__main__":
     root = Tk()
+    root.title("Stock Sentiment Analyzer")
     root.geometry('500x300')
     root.update()
 
