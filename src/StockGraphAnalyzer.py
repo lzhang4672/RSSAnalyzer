@@ -46,11 +46,14 @@ class StockGraphAnalyzer:
             self.graph.add_company_node(new_node)
 
             # will be used when adding industry nodes to graph
+            # note that new_node.sentiment * new_node.market_cap allows me to weigh the overall sentiment for industry
+            # based on the market cap
             if ticker_info['Industry'] not in industries:
-                industries[ticker_info['Industry']] = ([ticker], [new_node.sentiment], new_node.market_cap)
+                industries[ticker_info['Industry']] = ([ticker], [new_node.sentiment * new_node.market_cap],
+                                                       new_node.market_cap)
             else:
                 industries[ticker_info['Industry']][0].append(ticker)
-                industries[ticker_info['Industry']][1].append(new_node.sentiment)
+                industries[ticker_info['Industry']][1].append(new_node.sentiment * new_node.market_cap)
                 industries[ticker_info['Industry']][2] += new_node.market_cap
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
@@ -60,9 +63,21 @@ class StockGraphAnalyzer:
                 self.graph.add_edge(ticker, neighbour, connected[neighbour])
 
         # add industry nodes
+        for industry in industries:
+            values = industries[industry]
+            sentiment = sum(i[1] for i in values) / values[2]
+            self.graph.add_industry_node(industry, values[2], sentiment)
+            # add edges to industry node (connect to tickers)
+            # edge weight based on market cap / total market cap (how big of a % does the ticker hold)
+            for index in range(len(values[0])):
+                ticker, weight = values[0][index], values[1][index] / values[2]
+                self.graph.add_edge(industry, ticker, weight)
 
     def get_industry_connectivity(self) -> dict[str, float]:
         """
         Returns how well each industry node connects to other industry nodes based on the edges that cross
         connect the nodes from the different industries
+
+        Preconditions:
+            - Assumes the graph has already added all edges for CompanyNodes
         """

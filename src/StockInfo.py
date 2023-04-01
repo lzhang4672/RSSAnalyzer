@@ -71,15 +71,3 @@ def get_tickers_and_names() -> tuple[set, set]:
         symbols.add(element['Symbol'])
         names.add(element['Name'].upper())
     return symbols, names
-
-def get_industries() -> dict[str, list[str]]:
-    """
-    Returns a dictionary that maps all industries with tickers that fall under the industry
-    """
-    d = {}
-    for stock in tickers:
-        if stock['Industry'] not in d:
-            d[stock['Industry']] = []
-        else:
-            d[stock['Industry']].append(stock['Symbol'])
-    return d

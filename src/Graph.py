@@ -92,7 +92,8 @@ class Edge:
     """
     A class representing the edge of the graph
 
-    Note that this edge is bi-weighted
+    Note that this edge is weighted based on frequency (for CompanyNode to CompanyNode)
+    or weighted baesd on market cap (for IndustryNode to CompanyNode)
 
     Instance Attributes:
         - u: an IndustryNode or CompanyNode on one end of this edge
@@ -123,11 +124,11 @@ class Graph:
     def __init__(self) -> None:
         self.nodes = {}
 
-    def add_industry_node(self, name: str, market_cap: float, sentiment: float) -> None:
+    def add_industry_node(self, name: str, industry_cap: float, sentiment: float) -> None:
         """
         Adds an IndustryNode to the graph
         """
-        new_node = IndustryNode(name, market_cap, sentiment)
+        new_node = IndustryNode(name, industry_cap, sentiment)
         self.nodes[name] = new_node
 
     def add_company_node(self, node: CompanyNode) -> None:
@@ -136,7 +137,7 @@ class Graph:
         """
         self.nodes[node.name] = new_node
 
-    def add_edge(self, u: str, v: str, u_v_weight, v_u_weight) -> None:
+    def add_edge(self, u: str, v: str, weight: float) -> None:
         """
         Add an edge between the two nodes in this graph.
 
@@ -144,7 +145,7 @@ class Graph:
         """
         if u in self.nodes and v in self.nodes:
             u_node, v_node = self.nodes[u], self.nodes[v]
-            new_edge = Edge(u_node, v_node, u_v_weight, v_u_weight)
+            new_edge = Edge(u_node, v_node, weight)
             u.edges.add(new_edge)
             v.edges.add(new_edge)
         else:
