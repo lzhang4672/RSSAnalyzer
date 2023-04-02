@@ -43,6 +43,15 @@ class Node:
     def get_as_key(self):
         raise NotImplementedError
 
+    def get_pr_score(self):
+        score = 0
+        for edge in self.edges:
+            if edge.u is self:
+                score += edge.u_v_weight
+            else:
+                score += edge.v_u_weight
+        return score / len(self.edges)
+
 
 @check_contracts
 class CompanyNode(Node):
@@ -158,7 +167,7 @@ class Graph:
         """
         Adds an IndustryNode to the graph
         """
-        self.nodes[node.name] = new_node
+        self.nodes[node.name] = node
 
     def add_company_node(self, node: CompanyNode) -> None:
         """
@@ -185,7 +194,7 @@ class Graph:
 
     def get_node_by_name(self, name: str) -> Node:
         """
-        Return the node with the given name in this graph.
+        Return the node with the given name in this graph. (Mostly for testing)
 
         Raise ValueError if the node with the given name is not in this graph.
         """
@@ -199,3 +208,23 @@ class Graph:
         self.nodes[u].edges.remove(edge)
         self.nodes[v].edges.remove(edge)
         self.graph.edges.remove(edge)
+
+    def get_ordered_neighbours(self, node: Node) -> list[Node]:
+        """
+        Returns a list containing neighbouring nodes to the node given in sorted order according to edge weight
+        """
+        connected_stocks = {}
+        for edge in node.edges:
+            if edge.u is self:
+                connected_stocks[edge.v] = edge.u_v_weight
+            else:
+                connected_stocks[edge.u] = edge.v_u_weight
+        return sorted([stock for stock in connected_stocks.keys()],
+                      key=lambda stock: connected_stocks[stock], reverse=True)
+
+    def get_best_sentiment_stocks(self) -> list[Node]:
+        """
+        Returns a list containing nodes in sorted order based on sentiment values
+        """
+        all_nodes = set(self.graph.nodes.values())
+        return sorted([node for node in all_nodes], key=lambda node: node.sentiment, reverse=True)

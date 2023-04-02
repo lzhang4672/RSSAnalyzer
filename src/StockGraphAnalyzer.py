@@ -28,10 +28,12 @@ class StockGraphAnalyzer:
     """
     graph: Graph
     analyzer: StockAnalyzer
+    pagerank_scores: dict
 
     def __init__(self, stock_analyzer: StockAnalyzer) -> None:
         self.graph = Graph()
         self.analyzer = stock_analyzer
+        self.pagerank_scores = {}
 
     def generate_graph(self) -> None:
         """
@@ -64,9 +66,9 @@ class StockGraphAnalyzer:
                 # industry based on the market cap
                 if ticker_stock.industry not in industries:
                     industries[ticker_stock.industry] = IndustryData(tickers=[ticker],
-                                                                       sentiment=[
-                                                                           new_node.sentiment * new_node.market_cap],
-                                                                       market_cap=new_node.market_cap)
+                                                                     sentiment=[
+                                                                         new_node.sentiment * new_node.market_cap],
+                                                                     market_cap=new_node.market_cap)
                 else:
                     industries[ticker_stock.industry].tickers.append(ticker)
                     industries[ticker_stock.industry].sentiment.append(new_node.sentiment * new_node.market_cap)
@@ -98,15 +100,6 @@ class StockGraphAnalyzer:
                 # from ticker back to industry, the weight will be 0
                 self.graph.add_edge(industry, ticker, weight, 0.0)
 
-    def get_industry_connectivity(self) -> dict[str, float]:
-        """
-        Returns how well each industry node connects to other industry nodes based on the edges that cross
-        connect the nodes from the different industries
-
-        Preconditions:
-            - Assumes the graph has already added all edges for CompanyNodes
-        """
-
     def get_best_neighbour(self, node: Node) -> Node | None:
         """
         Returns the best neighbouring node to the node given.
@@ -114,81 +107,57 @@ class StockGraphAnalyzer:
         """
         if len(node.neighbour) == 0:
             return None
-        best = node
+        best, best_sentiment = None, node.sentiment
         for neighbour in node.neighbour:
             if isinstance(neighbour, IndustryNode):
                 continue
-            elif neighbour.sentiment > best.sentiment:
-                best = neighbour
+            elif neighbour.sentiment > best_sentiment:
+                best, best_sentiment = neighbour, neighbour.sentiment
         return best
 
-    def find_community(self) -> set[list[Node]]:
+    def update_pagerank(self, depth: Optional[int]) -> dict[str, float]:
         """
-        Returns a set of lists. Each list is a set
+        Pagerank algorithm based on the simple version from wikipedia:
+        https://en.wikipedia.org/wiki/PageRank#Simplified_algorithm
         """
+        for node in set(self.graph.nodes.values()):
+            score = node.get_pr_score()
+            # print(node, score)
+            if depth is not None:
+                linked_nodes = self._get_linked_nodes(node, depth)
+            else:
+                linked_nodes = self._get_linked_nodes(node, 1)
+            for linked_node in linked_nodes:
+                if linked_node in pagerank_scores:
+                    self.pagerank_scores[linked_node] += score
+                else:
+                    self.pagerank_scores[linked_node] = 0
+        return self.pagerank_scores
 
-    def _get_edge_highest_betweenness(self) -> list[Edge]:
+    def _get_linked_nodes(self, given_node: Node, depth: int) -> set[str]:
         """
-        Private helper method for finding communities
-        Returns the edge(s) with the highest "between-ness" as per the Girvan Newman Algorithm
+        Returns all nodes connected to given node, not in any particular order
+        Uses BFS with depth, -> gets the connected nodes within the depth parameter away.
         """
-        node1 = self.graph.nodes['NKE']
-        node2 = self.graph.nodes['UAA']
-        print(node1, node2)
-        print(self.find_best_path(node1, node2))
+        queue = deque([given_node])
+        visited = {given_node.get_as_key()}
+        depth_counter = 0
+        while queue and depth_counter < depth:
+            for _ in range(len(queue)):
+                cur = queue.popleft()
+                for neighbour in cur.neighbours:
+                    if neighbour.get_as_key() not in visited:
+                        queue.append(neighbour)
+                        visited.add(neighbour.get_as_key())
+            depth_counter += 1
+        return visited
 
-    def get_most_connected_tickers(self, node: Node) -> list[CompanyNode]:
+    def get_most_popular_nodes(self) -> list[Node]:
         """
-        Returns most connected stocks to the given one
+        Returns a list of nodes that sorts the nodes with highest pagerank scores
         """
-        return self.mst
-
-    def get_most_connected_industries(self):
-        """
-        Return IndustryNodes in MST
-        """
-
-    # def create_mst(self) -> None:
-    #     """
-    #     Returns the EDGES traversed by the shortest path to end_node from start_node, otherwise returns none if it
-    #     doesn't exist. This will be used as a helper function for StockGraphAnalyzer._get_edge_betweenness
-    #     Uses kruskal's algorithm to manage weighed edges. Edges are sorted based on average weight
-    #     """
-    #     mst = Graph()
-    #     sorted_edges = sorted([edge for edge in self.graph.edges], key=lambda edge: edge.get_average_weight(),
-    #                           reverse=True)
-    #     roots = {key: key for key in self.graph.nodes}
-    #     for edge in sorted_edges:
-    #         node1, node2 = edge.u, edge.v
-    #         if self._root(node1.get_as_key(), roots) == self._root(node2.get_as_key(), roots):
-    #             self._union(node1, node2, roots)
-    #             if isinstance(node1, IndustryNode):
-    #                 mst.add_industry_node(node1)
-    #                 mst.add_company_node(node2)
-    #             elif isinstance(node2, IndustryNode):
-    #                 mst.add_company_node(node2)
-    #             mst.edges.add(edge)
-    #     print(mst.nodes)
-    #     print(mst.edges)
-
-    def _root(self, node: str, roots: dict[str, str]) -> str:
-        """
-        Helper for find_best_path
-
-        Searches for and returns the "root" of a node. This will help with checking if two nodes are connected
-        During the searching process, modifies "root" dict/disjoint set to keep track of cycles
-        """
-        while roots[node] != node:
-            roots[node] = roots[roots[node]]
-            node = root[node]
-        return node
-
-    def _union(self, node1: str, node2: str, roots: dict[str, str]) -> None:
-        """
-        Links two nodes together, bascially "union" for a disjoint set
-        """
-        rootA, rootB = self._root(node1, roots), self._root(node2, roots)
-        roots[rootA] = roots[rootB]
+        all_nodes = set(self.pagerank_scores.keys())
+        return sorted([node for node in all_nodes], key=lambda node: pagerank_scores[node], reverse=True)
 
 
 # for testing
@@ -202,7 +171,13 @@ if __name__ == '__main__':
 
     sg = StockGraphAnalyzer(analyzer)
     sg.generate_graph()
-    sg.create_mst()
+    print('generated graph')
+    print(len(sg.graph.nodes))
+    d = sg.pagerank()
+    print(d)
+    ranks = sg.get_ordered_neighbours(sg.graph.get_node_by_name('RBLX'))
+    print('======')
+    print(ranks)
 
     # n1 = CompanyNode('Roblox', 'RBLX', 123.4, 'Technology', 5.0)
     # n2 = CompanyNode('Microsoft', 'MSFT', 123.4, 'Technology', 4.0)
