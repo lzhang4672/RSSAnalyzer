@@ -10,3 +10,4 @@ transformers==4.27.4
 torch
 nltk
 openai
+pyvis==0.3.1

@@ -15,7 +15,7 @@ import os
 CACHE_DIRECTORY = 'scrape_cache/'
 CACHE_HEADERS = [
     'Ticker', 'ArticlesUrls', 'ArticlesSentimentScores', 'ConnectedTickers', 'ConnectedFrequency',
-    'LinkingArticlesUrls', 'LinkingArticlesSentimentScores'
+    'LinkingArticlesUrls', 'LinkingArticlesSentimentScores', 'DoneScraping'
 ]
 SEARCH_FOCUS = {
     'Competitors': ' stock competitors news',
@@ -47,6 +47,7 @@ class StockAnalyzeData:
     primary_articles_data: list[tuple[str, float]] = field(default_factory=list)
     linking_articles_data: list[tuple[str, float]] = field(default_factory=list)
     connected_tickers: dict[str, int] = field(default_factory=dict)
+    done_scraping: bool = False
 
 @dataclass
 class StockAnalyzerSettings:
@@ -78,18 +79,53 @@ class StockAnalyzerSettings:
     search_focus: str = 'Stock'
 
 
+# static methods
+@check_contracts
+def get_stock_sentiment_as_text(stock: Stock) -> str:
+    """Returns the stock's sentiment value in text representation
+
+    If stock.sentiment <= -5.0, the stock is "extremely bearish"
+    If -5.0 < stock.sentiment < -2.5, the stock is "bearish"
+    If -2.5 <= stock.sentiment <= -0.5, the stock is "slightly bearish"
+    If -0.5 < stock.sentiment < 0.5, the stock is "neutral"
+    If 0.5 <= stock.sentiment <= 2.5, the stock is "slightly bullish"
+    If 2.5 < stock.sentiment < 5.0, the stock is "bullish"
+    If stock.sentiment >= 5.0, the stock is "extremely bullish"
+
+    Preconditions:
+        - -10.0 <= stock.sentiment <= 10.0
+    """
+    if stock.sentiment <= -5.0:
+        return "extremely bearish"
+    elif -5.0 < stock.sentiment < -2.5:
+        return "bearish"
+    elif -2.5 <= stock.sentiment <= -0.5:
+        return "slightly bearish"
+    elif -0.5 < stock.sentiment < 0.5:
+        return "neutral"
+    elif 0.5 <= stock.sentiment <= 2.5:
+        return "slightly bullish"
+    elif 2.5 < stock.sentiment < 5.0:
+        return "bullish"
+    else:
+        return "extremely bullish"
+
+
 # helper methods
 @check_contracts
-def _get_median_sentiment_score(articles_data: tuple[str, float]) -> float:
+def _get_median_sentiment_score(articles_data: list[tuple[str, float]]) -> float:
+    # filter out all the sentiment values that are exactly. Usually, if the sentiment is exactly 0 then we shouldn't
+    # count it as the sentiment is too neutral.
+    sorted_articles_data = [data for data in articles_data if data[0] != 0]
     # don't mutate and sort by the tuple's float value
-    sorted_articles_data: tuple[str, float] = sorted(articles_data, key=lambda tup: tup[1])
+    sorted_articles_data.sort(key=lambda tup: tup[1])
     len_articles = len(articles_data)
     mid_index = (len_articles - 1) // 2
     if len_articles % 2 == 0:
         # length is even
         return (sorted_articles_data[mid_index][1] + sorted_articles_data[mid_index + 1][1]) / 2.0
     else:
-        return sorted_articles_data[mid_index][1]
+        return float(sorted_articles_data[mid_index][1])
 
 class StockAnalyzer:
     """This class that analyzes information for stocks.
@@ -147,7 +183,8 @@ class StockAnalyzer:
                 'ConnectedTickers': str(connected_tickers),
                 'ConnectedFrequency': str(connected_frequencies),
                 'LinkingArticlesUrls': str(linking_articles_urls),
-                'LinkingArticlesSentimentScores': str(linking_articles_sentiment_scores)
+                'LinkingArticlesSentimentScores': str(linking_articles_sentiment_scores),
+                'DoneScraping': str(analyze_data.done_scraping)
             }]
         write_to_file(CACHE_DIRECTORY + self._settings.id + '_cache.csv', CACHE_HEADERS, row_data)
 
@@ -183,7 +220,8 @@ class StockAnalyzer:
     def _analyze_stock(self, ticker: str) -> None:
         stock_analyze_data = self.analyzed_data[ticker]
         has_analyzed = False
-        if stock_analyze_data.scraper.scrape_articles():
+        if len(stock_analyze_data.primary_articles_data) < self._settings.articles_per_ticker and \
+                not stock_analyze_data.done_scraping and stock_analyze_data.scraper.scrape_articles():
             if self._settings.output_info:
                 print("Start Analyzing " + ticker)
             for url in stock_analyze_data.scraper.articles_scraped:
@@ -192,7 +230,7 @@ class StockAnalyzer:
                 # sleep for a bit to not get rate limited
                 time.sleep(random.uniform(0.1, 0.25))
                 has_analyzed = True
-                if not self.has_analyzed_linking_article_url(ticker, url):
+                if not self.has_analyzed_primary_article_url(ticker, url):
                     print(url)
                     news_article_content = get_content_from_article_url(url)
                     if news_article_content:
@@ -240,6 +278,7 @@ class StockAnalyzer:
             if self._settings.output_info:
                 print("Finished Analyzing " + ticker)
                 print(stock_analyze_data)
+            stock_analyze_data.done_scraping = True
             if has_analyzed:
                 # if we analyzed articles and didn't rely entire only cached data
                 self._save_cache()
@@ -273,6 +312,7 @@ class StockAnalyzer:
                             connected_frequencies = ast.literal_eval(row['ConnectedFrequency'])
                             linking_articles_analyzed = ast.literal_eval(row['LinkingArticlesUrls'])
                             linking_articles_sentiment_scores = ast.literal_eval(row['LinkingArticlesSentimentScores'])
+                            done_scraping = row['DoneScraping'] == 'TRUE'
                             # load in primary articles data
                             for i in range(len(primary_articles_analyzed)):
                                 article_link = primary_articles_analyzed[i]
@@ -289,6 +329,7 @@ class StockAnalyzer:
                                 stock_analyze_data.connected_tickers[ticker] = frequency
                             # update scraper
                             stock_analyze_data.scraper.articles_scraped = primary_articles_analyzed
+                            stock_analyze_data.done_scraping = done_scraping
         # scrape for data if required
         if self._settings.output_info:
             print("Starting Web Scrape")
@@ -339,7 +380,7 @@ class StockAnalyzer:
                         sentiment=0,
                     ),
                     scraper=NewsScraper(
-                        search_query=stock_info['Name'] + SEARCH_FOCUS[self._settings.search_focus],
+                        search_query=stock_info['Symbol'] + SEARCH_FOCUS[self._settings.search_focus],
                         number_of_articles=self._settings.articles_per_ticker,
                         publish_range=PUBLISH_RANGE[self._settings.articles_publish_range]
                     )

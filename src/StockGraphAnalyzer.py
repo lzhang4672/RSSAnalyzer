@@ -62,15 +62,15 @@ class StockGraphAnalyzer:
                 # will be used when adding industry nodes to graph
                 # note that new_node.sentiment * new_node.market_cap allows me to weigh the overall sentiment for
                 # industry based on the market cap
-                if ticker_info['Industry'] not in industries:
-                    industries[ticker_info['Industry']] = IndustryData(tickers=[ticker],
+                if ticker_stock.industry not in industries:
+                    industries[ticker_stock.industry] = IndustryData(tickers=[ticker],
                                                                        sentiment=[
                                                                            new_node.sentiment * new_node.market_cap],
                                                                        market_cap=new_node.market_cap)
                 else:
-                    industries[ticker_info['Industry']].tickers.append(ticker)
-                    industries[ticker_info['Industry']].sentiment.append(new_node.sentiment * new_node.market_cap)
-                    industries[ticker_info['Industry']].market_cap += new_node.market_cap
+                    industries[ticker_stock.industry].tickers.append(ticker)
+                    industries[ticker_stock.industry].sentiment.append(new_node.sentiment * new_node.market_cap)
+                    industries[ticker_stock.industry].market_cap += new_node.market_cap
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
         created_edges = set()
@@ -137,32 +137,39 @@ class StockGraphAnalyzer:
         print(node1, node2)
         print(self.find_best_path(node1, node2))
 
-    def rank_node_importance(self) -> list[Node]:
+    def get_most_connected_tickers(self, node: Node) -> list[CompanyNode]:
         """
-        Returns a list in sorted order of the "importance" of the nodes
-        Importance score is calculated based on how many cross-references it has
+        Returns most connected stocks to the given one
+        """
+        return self.mst
+
+    def get_most_connected_industries(self):
+        """
+        Return IndustryNodes in MST
         """
 
-    def create_mst(self) -> None:
-        """
-        Returns the EDGES traversed by the shortest path to end_node from start_node, otherwise returns none if it
-        doesn't exist. This will be used as a helper function for StockGraphAnalyzer._get_edge_betweenness
-        Uses kruskal's algorithm to manage weighed edges. Edges are sorted based on average weight
-        """
-        queue = deque([edge for edge in cur_node.edges])
-        mst = Graph()
-        sorted_edges = sorted([edge for edge in self.graph.edges], key=lambda edge: edge.get_average_weight(),
-                              reverse=True)
-        roots = {key: key for key in self.graph.nodes}
-        for edge in sorted_edges:
-            node1, node2 = edge.u.get_as_key(), edge.v.get_as_key()
-            if self._root(node1, roots) == self._root(node2, roots):
-                self._union(node1, node2, roots)
-                if isinstance(node1, IndustryNode):
-                    mst.add_industry_node(node1)
-                else:
-                    mst.add_company_node(node2)
-                mst.edges.add(edge)
+    # def create_mst(self) -> None:
+    #     """
+    #     Returns the EDGES traversed by the shortest path to end_node from start_node, otherwise returns none if it
+    #     doesn't exist. This will be used as a helper function for StockGraphAnalyzer._get_edge_betweenness
+    #     Uses kruskal's algorithm to manage weighed edges. Edges are sorted based on average weight
+    #     """
+    #     mst = Graph()
+    #     sorted_edges = sorted([edge for edge in self.graph.edges], key=lambda edge: edge.get_average_weight(),
+    #                           reverse=True)
+    #     roots = {key: key for key in self.graph.nodes}
+    #     for edge in sorted_edges:
+    #         node1, node2 = edge.u, edge.v
+    #         if self._root(node1.get_as_key(), roots) == self._root(node2.get_as_key(), roots):
+    #             self._union(node1, node2, roots)
+    #             if isinstance(node1, IndustryNode):
+    #                 mst.add_industry_node(node1)
+    #                 mst.add_company_node(node2)
+    #             elif isinstance(node2, IndustryNode):
+    #                 mst.add_company_node(node2)
+    #             mst.edges.add(edge)
+    #     print(mst.nodes)
+    #     print(mst.edges)
 
     def _root(self, node: str, roots: dict[str, str]) -> str:
         """
@@ -195,4 +202,8 @@ if __name__ == '__main__':
 
     sg = StockGraphAnalyzer(analyzer)
     sg.generate_graph()
-    sg._get_edge_highest_betweenness()
+    sg.create_mst()
+
+    # n1 = CompanyNode('Roblox', 'RBLX', 123.4, 'Technology', 5.0)
+    # n2 = CompanyNode('Microsoft', 'MSFT', 123.4, 'Technology', 4.0)
+    # print(isinstance(n1, CompanyNode))
