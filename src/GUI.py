@@ -2,7 +2,7 @@ from tkinter import *
 
 
 class SearchBar:
-    root: Tk
+    root: Tk or Frame
     label: Label
     max_display: int
     data: list[str]
@@ -48,6 +48,7 @@ class SearchBar:
         x = self.entry.winfo_x()
         y = self.entry.winfo_y() + self.entry.winfo_height()
         w = self.entry.winfo_width()
+        print(x, y, w)
         self.listbox = Listbox(self.root, width=w, height=self.max_display, font=("Helvetica", 12))
         self.listbox.place(x=x, y=y, width=w)
         self.update_listbox()
@@ -65,6 +66,7 @@ class SearchBar:
         self.listbox.insert(END, *matches[:self.max_display])
 
     def delete_listbox(self):
+        print(1)
         if self.listbox:
             self.listbox.destroy()
             self.listbox = None
@@ -99,11 +101,11 @@ class Scrape:
         self.saved_name.pack()
 
         self.root.update()
-        frame = Frame(self.root)
+        frame = Frame(self.root, height=500)
         self.search_bar = SearchBar(frame, "Tickers Selection", tickers)
         frame.pack()
 
-        self.start_button = Button(self.root, text="Start")
+        self.start_button = Button(frame, text="Start")
         self.start_button.pack(side=BOTTOM)
         self.root.update()
 
@@ -128,6 +130,34 @@ class Scrape:
         else:
             print("did not enter valid name or ticker")
             return None
+
+class ScrapeProgress:
+    root: Tk
+    listbox: Listbox
+
+    def __init__(self, data):
+        self.root = Tk()
+        self.root.title("Scraping Progress")
+        self.root.geometry('500x300')
+
+        # the Listbox is filled with the initial data
+        self.listbox = Listbox(self.root)
+        for item in data:
+            self.listbox.insert("end", item)
+
+        self.scrollbar = tk.Scrollbar(self.root, orient="vertical")
+        self.listbox.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.listbox.yview)
+
+        self.listbox.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
+
+        self.root.mainloop()
+
+    def update_progress(self):
+        for i in range(len(self.listbox.get("0", "end")) - len(self.data)):
+            item = self.data[-i - 1]
+            self.listbox.insert("end", item)
 
 
 class Main:
