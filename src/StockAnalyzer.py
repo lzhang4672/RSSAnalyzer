@@ -338,13 +338,27 @@ class StockAnalyzer:
             analyze_data = self.analyzed_data[ticker]
             # calculate sentiment values
             # calculate the sentiment from primary articles
-            primary_sentiment, relational_sentiment = 0, 0
+            primary_sentiment, linking_sentiment = 0, 0
             if len(analyze_data.primary_articles_data) > 0:
-                primary_sentiment = sum(i[1] for i in analyze_data.primary_articles_data) / \
-                                    len(analyze_data.primary_articles_data)
+                # ignore sentiment values of exactly 0 as it dilutes the overall sentiment
+                sum_primary_sentiment = 0
+                values = 0
+                for primary_article in analyze_data.primary_articles_data:
+                    if primary_article[1] != 0:
+                        values += 1
+                        sum_primary_sentiment += primary_article[1]
+                if values != 0:
+                    primary_sentiment = sum_primary_sentiment / values
             # calculate the sentiment from secondary articles
             if len(analyze_data.linking_articles_data) > 0:
-                relational_sentiment = sum(i[1] for i in analyze_data.linking_articles_data) / \
-                                       len(analyze_data.linking_articles_data)
+                # ignore sentiment values of exactly 0 as it dilutes the overall sentiment
+                sum_linking_sentiment = 0
+                values = 0
+                for linking_article in analyze_data.linking_articles_data:
+                    if linking_article[1] != 0:
+                        values += 1
+                        sum_linking_sentiment += linking_article[1]
+                if values != 0:
+                    linking_sentiment = sum_linking_sentiment / values
             # scale the sentiment values and combine them
-            analyze_data.stock.sentiment = (primary_sentiment * 0.8 + relational_sentiment * 0.2) / 2
+            analyze_data.stock.sentiment = (primary_sentiment * 0.8 + linking_sentiment * 0.2) / 2
