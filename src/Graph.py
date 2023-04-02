@@ -1,5 +1,5 @@
 """
-File containing the nodes and graphs to represent the stocks
+This Python module contains the node, edge and graph classes to represent our data collected
 
 Copyright and Usage Information
 ===============================

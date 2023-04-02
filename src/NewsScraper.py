@@ -1,5 +1,5 @@
 """
-File containing all methods for webscraping
+This Python module contains all classes and functions for webscraping and collecting data
 """
 
 import random
@@ -80,6 +80,9 @@ def remove_non_ascii(string: str) -> str:
     """
     Helper method for get_children_as_str, and for handling strings
     Strips non ascii values from the given string and returns a new string without the values
+
+    >>> remove_non_ascii(str('Café \n'))
+    Caf
     """
     string = string.replace('\n', '')
     return ''.join([i if ord(i) < 128 else '' for i in string])
@@ -87,6 +90,10 @@ def remove_non_ascii(string: str) -> str:
 
 @check_contracts
 def get_random_header_agent() -> str:
+    """
+    Provides a random choice from headers list (USER_AGENTS)
+    (This allows us to rotate headers because after a number of requests, google blocks the header)
+    """
     return random.choice(USER_AGENTS)
 
 
@@ -106,7 +113,7 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     try:
         # try to send a request and retrieve the article
         page = requests.get(url, headers={"User-Agent": get_random_header_agent()}, timeout=30)
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
         # something went wrong so return nothing
         return None
 
@@ -134,12 +141,16 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
 class NewsScraper:
     """This class will handle the scraping process
 
-     Instance Attributes:
+    Instance Attributes:
         - search_query: a string representing what search query to use when scraping for articles.
         - number_of_articles: an integer representing the number of articles to scrape.
         - articles_scraped: a list containing the urls of the news articles scraped.
         - publish_range: a string representing how recent the articles should be when being scraped.
 
+    Representation Invariants:
+        - self.search_query != ''
+        - 0 < self.number_of_articles
+        - self.articles_scraped >= 0
     """
     search_query: str
     number_of_articles: int
@@ -196,14 +207,21 @@ class NewsScraper:
 
     @check_contracts
     def __init__(self, search_query: str, number_of_articles: int, publish_range: str):
-        """Constructor for a NewsScraper object
+        """
+        Constructor for a NewsScraper object
 
-            Preconditions:
-                - search_query != ''
-                - 0 < number_of_articles
-                - any(PUBLISH_RANGE[range] == publish_range for range in PUBLISH_RANGE)
+        Preconditions:
+            - search_query != ''
+            - 0 < number_of_articles
+            - any(PUBLISH_RANGE[range] == publish_range for range in PUBLISH_RANGE)
         """
         self.search_query = search_query
         self.number_of_articles = number_of_articles
         self.publish_range = publish_range
         self.articles_scraped = []
+
+
+if __name__ == '__main__':
+    import doctest
+
+    doctest.testmod(verbose=True)

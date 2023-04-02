@@ -1,3 +1,6 @@
+"""
+This Python module contains the classes
+"""
 from python_ta.contracts import check_contracts
 from dataclasses import dataclass, field
 import csv
@@ -5,6 +8,7 @@ from CSV import read_file
 from typing import Optional
 
 tickers = read_file('data/tickers_data.csv')
+
 
 @dataclass
 class Stock:

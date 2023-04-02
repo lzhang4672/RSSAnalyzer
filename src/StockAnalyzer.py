@@ -1,3 +1,8 @@
+"""
+This Python module contains all the nessecary functions and classes for running the functions to get the scraped data
+from NewsScraper.py and then processing the data by running/calling the nessecary classes and functions inside
+Sentiment.py
+"""
 from __future__ import annotations
 from python_ta.contracts import check_contracts
 from typing import Optional

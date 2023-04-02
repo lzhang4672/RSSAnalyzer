@@ -111,7 +111,6 @@ class Scrape:
 
         self.root.mainloop()
 
-
     def generate_scraping_data(self, event):
         try:
             num_articles = int(self.number_of_articles.get())
@@ -139,7 +138,6 @@ class Main:
     scrape_button: Button
     generate_scrape: Scrape or None
 
-
     def __init__(self, preset_data, ticker_data):
         self.root = Tk()
         self.root.geometry('500x300')
@@ -156,7 +154,8 @@ class Main:
         self.preset_button.pack()
         self.scrape_button.pack()
         self.root.update()
-        self.preset_button.place(in_=self.search_bar.entry, bordermode="inside", anchor="nw", relx=0.35, rely=1.0, y=110)
+        self.preset_button.place(in_=self.search_bar.entry, bordermode="inside", anchor="nw", relx=0.35, rely=1.0,
+                                 y=110)
         self.scrape_button.place(in_=self.preset_button, bordermode="outside", anchor="nw", relx=0, rely=1.0, y=5)
 
         self.root.update()
@@ -183,11 +182,7 @@ class Main:
             print("did not input a valid stock name")
 
 
-
-
 if __name__ == "__main__":
-
-
     preset = ["amour", "gloire", "pouvoir de l'instant présent", "beauté", "guerre", "action"]
     tickers = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB', 'TSLA', 'NVDA', 'JPM', 'WMT', 'V']
 
