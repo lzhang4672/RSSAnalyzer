@@ -12,7 +12,7 @@ class SearchBar:
     def __init__(self, root, data):
         self.root = root
 
-        self.label = Label(self.root, text="Search for stock", pady=20)
+        self.label = Label(self.root, text="Stock Sentiment Analyzer", pady=20)
         self.label.pack()
 
         self.max_display = 5

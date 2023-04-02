@@ -29,7 +29,6 @@ SEARCH_PARAMS = {
 NEWS_URL = "https://www.google.com/search"
 WEB_TIMEOUT = 30
 
-
 PUBLISH_RANGE = {
     'PastYear': 'y',
     'PastMonth': 'm',
@@ -37,6 +36,7 @@ PUBLISH_RANGE = {
     'PastDay': 'd',
     'Recent': '',
 }
+
 
 @dataclass
 class NewsArticleContent:
@@ -51,6 +51,7 @@ class NewsArticleContent:
     """
     title: str
     sentences: list[str]
+
 
 @check_contracts
 def get_children_as_str(obj: bs4.element.Tag | bs4.element.NavigableString) -> str:
@@ -83,9 +84,12 @@ def remove_non_ascii(string: str) -> str:
     string = string.replace('\n', '')
     return ''.join([i if ord(i) < 128 else '' for i in string])
 
+
 @check_contracts
 def get_random_header_agent() -> str:
     return random.choice(USER_AGENTS)
+
+
 @check_contracts
 def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     """
@@ -125,6 +129,7 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
         sentences=texts.split('. ')
     )
 
+
 @check_contracts
 class NewsScraper:
     """This class will handle the scraping process
@@ -158,12 +163,13 @@ class NewsScraper:
         while number_of_articles_so_far < self.number_of_articles:
             # sleep for an arbitrary amount to avoid rate limiting
             time.sleep(random.uniform(2, 5))
+            print(SEARCH_PARAMS)
             try:
                 # try to send a request and retrieve the articles from Google News
                 header_agent = get_random_header_agent()
                 html = requests.get(NEWS_URL, params=SEARCH_PARAMS, headers={"User-Agent": header_agent},
-                                                                            timeout=5)
-            except requests.exceptions.RequestException as e:
+                                    timeout=5)
+            except requests.exceptions.RequestException as _:
                 # something went wrong so abort the program
                 return False
             # parse the html using beautifulsoup
@@ -174,7 +180,7 @@ class NewsScraper:
                 if article_link not in self.articles_scraped:
                     self.articles_scraped += [article_link]
                     number_of_articles_so_far += 1
-            if soup.select_one('.BBwThe'):
+            if soup.select_one('.d6cvqb BBwThe'):
                 SEARCH_PARAMS["start"] += 10
             else:
                 break

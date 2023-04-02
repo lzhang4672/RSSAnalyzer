@@ -229,7 +229,7 @@ class StockAnalyzer:
             # compare connection frequency to see if it's frequent enough
             for connected_ticker in stock_analyze_data.connected_tickers:
                 connected_frequency = stock_analyze_data.connected_tickers[connected_ticker]
-                if connected_frequency / total_connected_frequencies <= 0.1:
+                if total_connected_frequencies != 0 and connected_frequency / total_connected_frequencies <= 0.1:
                     if self._settings.output_info:
                         print("removing " + connected_ticker)
                     # connected stock's weighting is too low so just set it as 0
