@@ -6,6 +6,7 @@ from typing import Optional
 import openai
 from openai.error import RateLimitError
 from nltk.sentiment import SentimentIntensityAnalyzer
+from transformers import pipeline, BertForSequenceClassification, BertTokenizer
 from nltk.corpus import stopwords
 from python_ta.contracts import check_contracts
 from StockInfo import Stock
@@ -29,7 +30,19 @@ else:
 # install vader_lexicon model
 nltk.downloader.download('stopwords')
 nltk.downloader.download('vader_lexicon')
+# intialize vader sentiment analyzer
 sentiment_analyzer = SentimentIntensityAnalyzer()
+
+# intialize finbert
+finbert_model = BertForSequenceClassification.from_pretrained('yiyanghkust/finbert-tone', num_labels=3)
+finbert_tokenizer = BertTokenizer.from_pretrained('yiyanghkust/finbert-tone')
+finbert_get_sentiment = pipeline("text-classification", model=finbert_model, tokenizer=finbert_tokenizer)
+MAX_FINBERT_TOKENS = 512
+FINBERT_LABELS = {
+    'Positive': 10,
+    'Neutral': 0,
+    "Negative": -10
+}
 
 # model constants
 openai.api_key = "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"
@@ -117,7 +130,14 @@ def get_sentiment_single(passage: str) -> float:
     # return sentiment of the passage which is the average compound scores for the raw passage and the cleaned one
     cleaned_score = sentiment_analyzer.polarity_scores(cleaned_text)['compound']
     raw_score = sentiment_analyzer.polarity_scores(passage)['compound']
-    return (cleaned_score + raw_score) * 5
+    vader_score, finbert_score = (cleaned_score + raw_score) * 5, 0
+    if len(finbert_tokenizer.tokenize(passage)) < MAX_FINBERT_TOKENS:
+        # make sure the sentence isn't too long for finbert
+        finbert_score = FINBERT_LABELS[finbert_get_sentiment(passage)[0]['label']]
+    # calculate overall sentiment score while siding more with finbert's score as its more accurate
+    sentiment_score = finbert_score * 0.65 + vader_score * 0.35
+    return sentiment_score
+
 
 
 def get_stocks_in_passage(passage: str) -> set:
@@ -146,7 +166,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
     title_stock_score = 0
     sentiment_data = {}
     if len(title_stocks) > 1:
-        sentiment_data.update()
+        sentiment_data.update(get_complex_phrase_sentiment_score(news_article.title))
     elif len(title_stocks) == 1:
         sentiment_data[title_stocks.pop()] = get_sentiment_single(news_article.title)
     if main_stock.ticker in sentiment_data:
@@ -168,6 +188,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
         elif len(passage_stocks) == 1:
             sentiment = get_sentiment_single(passage)
             if sentiment != 0:
+                # ignore sentiment values that are baseline neutral as it dilutes the average too much
                 sentiment_data[passage_stocks.pop()] = sentiment
                 sentence_counter += 1
         if main_stock.ticker in sentiment_data:
@@ -177,7 +198,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
     if sentence_counter == 0:
         main_stock_score = title_stock_score
     else:
-        main_stock_score = (title_stock_score * 0.40) + (passage_stock_score * 0.60) / sentence_counter
+        main_stock_score = (title_stock_score * 0.60) + (passage_stock_score * 0.40) / sentence_counter
     # adjustment for other stocks since the article is not primarly focused on the other stocks, make it weigh
     # slightly less
     for stock in sentiment_data:

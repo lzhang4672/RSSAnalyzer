@@ -36,36 +36,28 @@ class StockGraphAnalyzer:
         #     (url, sentiment from that url), so this private function will calculate average overall sentiment
         #     based off of a StockAnalyzeData object
         for ticker in tickers:
-            ticker_info = get_info_from_ticker(ticker)
-            if len(data[ticker].primary_articles_data) == 0:
-                primary_sentiment = 0
-            else:
-                primary_sentiment = sum(float(i[1]) for i in data[ticker].primary_articles_data) / \
-                                    len(data[ticker].primary_articles_data)
-            if len(data[ticker].linking_articles_data) == 0:
-                relational_sentiment = 0
-            else:
-                relational_sentiment = sum(float(i[1]) for i in data[ticker].linking_articles_data) / \
-                                       len(data[ticker].linking_articles_data)
-            new_node = CompanyNode(
-                name=ticker_info['Name'],
-                ticker=ticker,
-                market_cap=float(ticker_info['Market Cap']),
-                industry=ticker_info['Industry'],
-                sentiment=primary_sentiment * 0.8 + relational_sentiment * 0.2
-            )
-            self.graph.add_company_node(new_node)
+            if ticker in data:
+                ticker_analyzed_data = data[ticker]
+                ticker_stock = ticker_analyzed_data.stock
+                new_node = CompanyNode(
+                    name=ticker_stock.name,
+                    ticker=ticker,
+                    market_cap=ticker_stock.market_cap,
+                    industry=ticker_stock.industry,
+                    sentiment=ticker_stock.sentiment
+                )
+                self.graph.add_company_node(new_node)
 
-            # will be used when adding industry nodes to graph
-            # note that new_node.sentiment * new_node.market_cap allows me to weigh the overall sentiment for industry
-            # based on the market cap
-            if ticker_info['Industry'] not in industries:
-                industries[ticker_info['Industry']] = [[ticker], [new_node.sentiment * new_node.market_cap],
-                                                       new_node.market_cap]
-            else:
-                industries[ticker_info['Industry']][0].append(ticker)
-                industries[ticker_info['Industry']][1].append(new_node.sentiment * new_node.market_cap)
-                industries[ticker_info['Industry']][2] += new_node.market_cap
+                # will be used when adding industry nodes to graph
+                # note that new_node.sentiment * new_node.market_cap allows me to weigh the overall sentiment for industry
+                # based on the market cap
+                if ticker_stock.industry not in industries:
+                    industries[ticker_stock.industry] = [[ticker], [new_node.sentiment * new_node.market_cap],
+                                                           new_node.market_cap]
+                else:
+                    industries[ticker_stock.industry][0].append(ticker)
+                    industries[ticker_stock.industry][1].append(new_node.sentiment * new_node.market_cap)
+                    industries[ticker_stock.industry][2] += new_node.market_cap
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
         created_edges = set()

@@ -78,6 +78,19 @@ class StockAnalyzerSettings:
     search_focus: str = 'Stock'
 
 
+# helper methods
+@check_contracts
+def _get_median_sentiment_score(articles_data: tuple[str, float]) -> float:
+    # don't mutate and sort by the tuple's float value
+    sorted_articles_data: tuple[str, float] = sorted(articles_data, key=lambda tup: tup[1])
+    len_articles = len(articles_data)
+    mid_index = (len_articles - 1) // 2
+    if len_articles % 2 == 0:
+        # length is even
+        return (sorted_articles_data[mid_index][1] + sorted_articles_data[mid_index + 1][1]) / 2.0
+    else:
+        return sorted_articles_data[mid_index][1]
+
 class StockAnalyzer:
     """This class that analyzes information for stocks.
 
@@ -246,35 +259,36 @@ class StockAnalyzer:
                 # get all row data
                 if row != {}:
                     ticker = row['Ticker']
-                    stock_analyze_data = self.analyzed_data[ticker]
-                    if stock_analyze_data:
-                        # the stock analyze data exists for the ticker
-                        if self._settings.output_info:
-                            print("Loading Cached Data For: " + ticker)
-                        print(row['ArticlesUrls'])
+                    if ticker in self.analyzed_data:
+                        stock_analyze_data = self.analyzed_data[ticker]
+                        if stock_analyze_data:
+                            # the stock analyze data exists for the ticker
+                            if self._settings.output_info:
+                                print("Loading Cached Data For: " + ticker)
+                            print(row['ArticlesUrls'])
 
-                        primary_articles_analyzed = ast.literal_eval(row['ArticlesUrls'])
-                        primary_articles_sentiment_scores = ast.literal_eval(row['ArticlesSentimentScores'])
-                        connected_companies = ast.literal_eval(row['ConnectedTickers'])
-                        connected_frequencies = ast.literal_eval(row['ConnectedFrequency'])
-                        linking_articles_analyzed = ast.literal_eval(row['LinkingArticlesUrls'])
-                        linking_articles_sentiment_scores = ast.literal_eval(row['LinkingArticlesSentimentScores'])
-                        # load in primary articles data
-                        for i in range(len(primary_articles_analyzed)):
-                            article_link = primary_articles_analyzed[i]
-                            article_sentiment = primary_articles_sentiment_scores[i]
-                            stock_analyze_data.primary_articles_data += [(article_link, article_sentiment)]
-                        # load in linking articles data
-                        for i in range(len(linking_articles_analyzed)):
-                            article_link = linking_articles_analyzed[i]
-                            article_sentiment = linking_articles_sentiment_scores[i]
-                            stock_analyze_data.linking_articles_data += [(article_link, article_sentiment)]
-                        # load in connected stocks
-                        for i in range(len(connected_companies)):
-                            ticker, frequency = connected_companies[i], connected_frequencies[i]
-                            stock_analyze_data.connected_tickers[ticker] = frequency
-                        # update scraper
-                        stock_analyze_data.scraper.articles_scraped = primary_articles_analyzed
+                            primary_articles_analyzed = ast.literal_eval(row['ArticlesUrls'])
+                            primary_articles_sentiment_scores = ast.literal_eval(row['ArticlesSentimentScores'])
+                            connected_companies = ast.literal_eval(row['ConnectedTickers'])
+                            connected_frequencies = ast.literal_eval(row['ConnectedFrequency'])
+                            linking_articles_analyzed = ast.literal_eval(row['LinkingArticlesUrls'])
+                            linking_articles_sentiment_scores = ast.literal_eval(row['LinkingArticlesSentimentScores'])
+                            # load in primary articles data
+                            for i in range(len(primary_articles_analyzed)):
+                                article_link = primary_articles_analyzed[i]
+                                article_sentiment = primary_articles_sentiment_scores[i]
+                                stock_analyze_data.primary_articles_data += [(article_link, article_sentiment)]
+                            # load in linking articles data
+                            for i in range(len(linking_articles_analyzed)):
+                                article_link = linking_articles_analyzed[i]
+                                article_sentiment = linking_articles_sentiment_scores[i]
+                                stock_analyze_data.linking_articles_data += [(article_link, article_sentiment)]
+                            # load in connected stocks
+                            for i in range(len(connected_companies)):
+                                ticker, frequency = connected_companies[i], connected_frequencies[i]
+                                stock_analyze_data.connected_tickers[ticker] = frequency
+                            # update scraper
+                            stock_analyze_data.scraper.articles_scraped = primary_articles_analyzed
         # scrape for data if required
         if self._settings.output_info:
             print("Starting Web Scrape")
@@ -293,6 +307,8 @@ class StockAnalyzer:
             print("!==============!")
             print("DATA BUILD COMPLETE")
             print("!==============!")
+
+
 
     def __init__(self, tickers: list[str],
                  settings: StockAnalyzerSettings = StockAnalyzerSettings(id="Default", articles_per_ticker=5,
@@ -340,25 +356,12 @@ class StockAnalyzer:
             # calculate the sentiment from primary articles
             primary_sentiment, linking_sentiment = 0, 0
             if len(analyze_data.primary_articles_data) > 0:
-                # ignore sentiment values of exactly 0 as it dilutes the overall sentiment
-                sum_primary_sentiment = 0
-                values = 0
-                for primary_article in analyze_data.primary_articles_data:
-                    if primary_article[1] != 0:
-                        values += 1
-                        sum_primary_sentiment += primary_article[1]
-                if values != 0:
-                    primary_sentiment = sum_primary_sentiment / values
+                # get median of sentiment data to avoid heavy influences from outliers.
+                # also, since the data size is relatively small, median is the better choice in this case
+                primary_sentiment = _get_median_sentiment_score(analyze_data.primary_articles_data)
             # calculate the sentiment from secondary articles
             if len(analyze_data.linking_articles_data) > 0:
                 # ignore sentiment values of exactly 0 as it dilutes the overall sentiment
-                sum_linking_sentiment = 0
-                values = 0
-                for linking_article in analyze_data.linking_articles_data:
-                    if linking_article[1] != 0:
-                        values += 1
-                        sum_linking_sentiment += linking_article[1]
-                if values != 0:
-                    linking_sentiment = sum_linking_sentiment / values
-            # scale the sentiment values and combine them
-            analyze_data.stock.sentiment = (primary_sentiment * 0.8 + linking_sentiment * 0.2) / 2
+                linking_sentiment = _get_median_sentiment_score(analyze_data.linking_articles_data)
+            # get sentiment value from combining linking sentiment and primary sentiment
+            analyze_data.stock.sentiment = (primary_sentiment + linking_sentiment) / 2
