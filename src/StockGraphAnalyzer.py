@@ -37,7 +37,7 @@ class StockGraphAnalyzer:
         """
         Generates the graph based on data from self.analyzer
         """
-        ticker_info = self.analyzer.tickers
+        tickers = self.analyzer.tickers
         data = self.analyzer.analyzed_data
         industries = {}
 
@@ -98,6 +98,15 @@ class StockGraphAnalyzer:
                 # from ticker back to industry, the weight will be 0
                 self.graph.add_edge(industry, ticker, weight, 0.0)
 
+    def get_industry_connectivity(self) -> dict[str, float]:
+        """
+        Returns how well each industry node connects to other industry nodes based on the edges that cross
+        connect the nodes from the different industries
+
+        Preconditions:
+            - Assumes the graph has already added all edges for CompanyNodes
+        """
+
     def get_best_neighbour(self, node: Node) -> Node | None:
         """
         Returns the best neighbouring node to the node given.
@@ -130,6 +139,10 @@ class StockGraphAnalyzer:
         """
         Returns a list containing nodes in sorted order based on sentiment values
         """
+        node1 = self.graph.nodes['NKE']
+        node2 = self.graph.nodes['UAA']
+        print(node1, node2)
+        print(self.find_best_path(node1, node2))
 
     def pagerank(self) -> dict[str, float]:
         """
