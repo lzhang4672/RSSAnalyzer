@@ -28,10 +28,12 @@ class StockGraphAnalyzer:
     """
     graph: Graph
     analyzer: StockAnalyzer
+    pagerank_scores: dict
 
     def __init__(self, stock_analyzer: StockAnalyzer) -> None:
         self.graph = Graph()
         self.analyzer = stock_analyzer
+        self.pagerank_scores = {}
 
     def generate_graph(self) -> None:
         """
@@ -98,15 +100,6 @@ class StockGraphAnalyzer:
                 # from ticker back to industry, the weight will be 0
                 self.graph.add_edge(industry, ticker, weight, 0.0)
 
-    def get_industry_connectivity(self) -> dict[str, float]:
-        """
-        Returns how well each industry node connects to other industry nodes based on the edges that cross
-        connect the nodes from the different industries
-
-        Preconditions:
-            - Assumes the graph has already added all edges for CompanyNodes
-        """
-
     def get_best_neighbour(self, node: Node) -> Node | None:
         """
         Returns the best neighbouring node to the node given.
@@ -114,56 +107,37 @@ class StockGraphAnalyzer:
         """
         if len(node.neighbour) == 0:
             return None
-        best = node
+        best, best_sentiment = None, node.sentiment
         for neighbour in node.neighbour:
             if isinstance(neighbour, IndustryNode):
                 continue
-            elif neighbour.sentiment > best.sentiment:
-                best = neighbour
+            elif neighbour.sentiment > best_sentiment:
+                best, best_sentiment = neighbour, neighbour.sentiment
         return best
 
-    def get_ordered_neighbours(self, node: Node) -> list[Node]:
-        """
-        Returns a list containing neighbouring nodes to the node given in sorted order according to edge weight
-        """
-        connected_stocks = {}
-        for edge in node.edges:
-            if edge.u is self:
-                connected_stocks[edge.v] = edge.u_v_weight
-            else:
-                connected_stocks[edge.u] = edge.v_u_weight
-        return sorted([stock for stock in connected_stocks.keys()],
-                      key=lambda stock: connected_stocks[stock], reverse=True)
-
-    def get_best_sentiment_stocks(self):
-        """
-        Returns a list containing nodes in sorted order based on sentiment values
-        """
-        node1 = self.graph.nodes['NKE']
-        node2 = self.graph.nodes['UAA']
-        print(node1, node2)
-        print(self.find_best_path(node1, node2))
-
-    def pagerank(self) -> dict[str, float]:
+    def update_pagerank(self, depth: Optional[int]) -> dict[str, float]:
         """
         Pagerank algorithm based on the simple version from wikipedia:
         https://en.wikipedia.org/wiki/PageRank#Simplified_algorithm
         """
-        pagerank_scores = {}
         for node in set(self.graph.nodes.values()):
             score = node.get_pr_score()
             # print(node, score)
-            for linked_node in self._get_linked_nodes(node):
+            if depth is not None:
+                linked_nodes = self._get_linked_nodes(node, depth)
+            else:
+                linked_nodes = self._get_linked_nodes(node, 1)
+            for linked_node in linked_nodes:
                 if linked_node in pagerank_scores:
-                    pagerank_scores[linked_node] += score
+                    self.pagerank_scores[linked_node] += score
                 else:
-                    pagerank_scores[linked_node] = 0
-        return pagerank_scores
+                    self.pagerank_scores[linked_node] = 0
+        return self.pagerank_scores
 
-    def _get_linked_nodes(self, given_node: Node, depth=1) -> set[str]:
+    def _get_linked_nodes(self, given_node: Node, depth: int) -> set[str]:
         """
         Returns all nodes connected to given node, not in any particular order
-        Uses BFS
+        Uses BFS with depth, -> gets the connected nodes within the depth parameter away.
         """
         queue = deque([given_node])
         visited = {given_node.get_as_key()}
@@ -178,10 +152,12 @@ class StockGraphAnalyzer:
             depth_counter += 1
         return visited
 
-    def get_most_popular_nodes(self):
+    def get_most_popular_nodes(self) -> list[Node]:
         """
         Returns a list of nodes that sorts the nodes with highest pagerank scores
         """
+        all_nodes = set(self.pagerank_scores.keys())
+        return sorted([node for node in all_nodes], key=lambda node: pagerank_scores[node], reverse=True)
 
 
 # for testing

@@ -208,3 +208,23 @@ class Graph:
         self.nodes[u].edges.remove(edge)
         self.nodes[v].edges.remove(edge)
         self.graph.edges.remove(edge)
+
+    def get_ordered_neighbours(self, node: Node) -> list[Node]:
+        """
+        Returns a list containing neighbouring nodes to the node given in sorted order according to edge weight
+        """
+        connected_stocks = {}
+        for edge in node.edges:
+            if edge.u is self:
+                connected_stocks[edge.v] = edge.u_v_weight
+            else:
+                connected_stocks[edge.u] = edge.v_u_weight
+        return sorted([stock for stock in connected_stocks.keys()],
+                      key=lambda stock: connected_stocks[stock], reverse=True)
+
+    def get_best_sentiment_stocks(self) -> list[Node]:
+        """
+        Returns a list containing nodes in sorted order based on sentiment values
+        """
+        all_nodes = set(self.graph.nodes.values())
+        return sorted([node for node in all_nodes], key=lambda node: node.sentiment, reverse=True)
