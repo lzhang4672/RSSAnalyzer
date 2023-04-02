@@ -1,4 +1,5 @@
 from __future__ import annotations
+from python_ta.contracts import check_contracts
 from typing import Optional
 from dataclasses import dataclass, field
 from CSV import read_file, write_to_file
@@ -24,16 +25,6 @@ SEARCH_FOCUS = {
 
 
 
-# EXCEPTIONS
-
-class StockAnalyzeError(Exception):
-    """A base class exception for the class"""
-
-
-class CacheDoesNotExistError(StockAnalyzeError):
-    """Thrown when a cached data wants to be used but the cached data associated with the id does not exist"""
-
-
 
 @dataclass
 class StockAnalyzeData:
@@ -49,7 +40,7 @@ class StockAnalyzeData:
                                 the first element is the url of the article and the second element is the sentiment
                                 value calculated from the article.
         - connected_tickers: a dictionary with the key as a stock's ticker and an integer representing the frequency of
-                            that specific stock being mentioned in articles that focus specifically on the primary stock
+                     .       that specific stock being mentioned in articles that focus specifically on the primary stock
     """
     stock: Stock
     scraper: NewsScraper
@@ -95,27 +86,22 @@ class StockAnalyzer:
         - tickers: a list of stock tickers to be analyzed by the object.
      Private Instance Attributes:
         - _settings: a StockAnalyzerSettings object that represents the settings to be used when analyzing the stocks.
-        - _analyze_data: a dictionary containing all the data of the stocks analyzed
+        - analyze_data: a dictionary containing all the data of the stocks analyzed
     """
 
     tickers: list[str]
     _settings: StockAnalyzerSettings
-    _analyze_data: dict[str, StockAnalyzeData] = {}
+    analyzed_data: dict[str, StockAnalyzeData] = {}
 
-    def get_data(self) -> dict[str, StockAnalyzeData]:
-        """
-        Getter method for _analyze_data attribute
-        """
-        return self._analyze_data
-
-    def _save_cache(self):
+    @check_contracts
+    def _save_cache(self) -> None:
         """Called to save the current progress of scraping to a csv file.
         """
         if self._settings.output_info:
             print("Saving To Cache")
         row_data = []
-        for ticker in self._analyze_data:
-            analyze_data: StockAnalyzeData = self._analyze_data[ticker]
+        for ticker in self.analyzed_data:
+            analyze_data: StockAnalyzeData = self.analyzed_data[ticker]
             # parse primary articles data
             primary_articles_urls = []
             primary_articles_sentiment_scores = []
@@ -150,40 +136,39 @@ class StockAnalyzer:
                 'LinkingArticlesUrls': str(linking_articles_urls),
                 'LinkingArticlesSentimentScores': str(linking_articles_sentiment_scores)
             }]
-
-
         write_to_file(CACHE_DIRECTORY + self._settings.id + '_cache.csv', CACHE_HEADERS, row_data)
 
-
+    @check_contracts
     def remove_linking_article_by_url(self, ticker: str, url: str) -> None:
-        if ticker in self._analyze_data:
-            stock_analyze_data = self._analyze_data[ticker]
+        if ticker in self.analyzed_data:
+            stock_analyze_data = self.analyzed_data[ticker]
             for i in range(len(stock_analyze_data.linking_articles_data)):
                 linking_data = stock_analyze_data.linking_articles_data[i]
                 if linking_data[0] == url:
                     stock_analyze_data.linking_articles_data.pop(i)
                     break
-
+    @check_contracts
     def has_analyzed_primary_article_url(self, ticker: str, url: str) -> bool:
-        if ticker in self._analyze_data:
-            stock_analyze_data = self._analyze_data[ticker]
+        if ticker in self.analyzed_data:
+            stock_analyze_data = self.analyzed_data[ticker]
             for primary_data in stock_analyze_data.primary_articles_data:
                 if primary_data[0] == url:
                     return True
 
         return False
-
+    @check_contracts
     def has_analyzed_linking_article_url(self, ticker: str, url: str) -> bool:
-        if ticker in self._analyze_data:
-            stock_analyze_data = self._analyze_data[ticker]
+        if ticker in self.analyzed_data:
+            stock_analyze_data = self.analyzed_data[ticker]
             for linking_data in stock_analyze_data.linking_articles_data:
                 if linking_data[0] == url:
                     return True
 
         return False
 
+    @check_contracts
     def _analyze_stock(self, ticker: str) -> None:
-        stock_analyze_data = self._analyze_data[ticker]
+        stock_analyze_data = self.analyzed_data[ticker]
         has_analyzed = False
         if stock_analyze_data.scraper.scrape_articles():
             if self._settings.output_info:
@@ -213,9 +198,9 @@ class StockAnalyzer:
                                 stock_analyze_data.connected_tickers[connected_ticker] = 0
                             stock_analyze_data.connected_tickers[connected_ticker] += 1
                             # update linked tickers that were mentioned in the article
-                            if connected_ticker in self._analyze_data:
+                            if connected_ticker in self.analyzed_data:
                                 # if the connected ticker is being analyzed
-                                connected_stock_analyze_data = self._analyze_data[connected_ticker]
+                                connected_stock_analyze_data = self.analyzed_data[connected_ticker]
                                 if not self.has_analyzed_linking_article_url(connected_ticker, url):
                                     # the article hasn't been linked yet so link it
                                     connected_stock_sentiment_score = \
@@ -236,23 +221,17 @@ class StockAnalyzer:
                         print("removing " + connected_ticker)
                     # connected stock's weighting is too low so just set it as 0
                     stock_analyze_data.connected_tickers[connected_ticker] = 0
-                    for url in stock_analyze_data.primary_articles_data:
+                    for primary_article in stock_analyze_data.primary_articles_data:
                         # remove the associated article
-                        self.remove_linking_article_by_url(connected_ticker, url)
+                        self.remove_linking_article_by_url(connected_ticker, primary_article[0])
             if self._settings.output_info:
                 print("Finished Analyzing " + ticker)
                 print(stock_analyze_data)
             if has_analyzed:
                 # if we analyzed articles and didn't rely entire only cached data
                 self._save_cache()
-
-
-
-
-
-
-
-    def _build_data(self):
+    @check_contracts
+    def _build_data(self) -> None:
         """This private function is responsible for scraping news articles and building up data for the
         sentiment values associated with a stock """
         if self._settings.output_info:
@@ -267,8 +246,7 @@ class StockAnalyzer:
                 # get all row data
                 if row != {}:
                     ticker = row['Ticker']
-
-                    stock_analyze_data = self._analyze_data[ticker]
+                    stock_analyze_data = self.analyzed_data[ticker]
                     if stock_analyze_data:
                         # the stock analyze data exists for the ticker
                         if self._settings.output_info:
@@ -302,8 +280,8 @@ class StockAnalyzer:
             print("Starting Web Scrape")
         # begin analysis
         progress = 0
-        total_progress = len(self._analyze_data)
-        for ticker in self._analyze_data:
+        total_progress = len(self.analyzed_data)
+        for ticker in self.analyzed_data:
             self._analyze_stock(ticker)
             progress += 1
             if self._settings.output_info:
@@ -313,7 +291,7 @@ class StockAnalyzer:
 
         if self._settings.output_info:
             print("!==============!")
-            print("WEB SCRAPE COMPLETE")
+            print("DATA BUILD COMPLETE")
             print("!==============!")
 
     def __init__(self, tickers: list[str],
@@ -336,7 +314,7 @@ class StockAnalyzer:
             if stock_info is not None:
                 if self._settings.output_info:
                     print('Found Data For: ' + ticker)
-                self._analyze_data[ticker] = StockAnalyzeData(
+                self.analyzed_data[ticker] = StockAnalyzeData(
                     Stock(
                         name=stock_info['Name'],
                         ticker=stock_info['Symbol'],
@@ -353,5 +331,20 @@ class StockAnalyzer:
             else:
                 if self._settings.output_info:
                     print(ticker + ' was not found in the database')
-
+        # build the scrape data
         self._build_data()
+        # calculate stock attributes from scaped values
+        for ticker in self.analyzed_data:
+            analyze_data = self.analyzed_data[ticker]
+            # calculate sentiment values
+            # calculate the sentiment from primary articles
+            primary_sentiment, relational_sentiment = 0, 0
+            if len(analyze_data.primary_articles_data) > 0:
+                primary_sentiment = sum(i[1] for i in analyze_data.primary_articles_data) / \
+                                    len(analyze_data.primary_articles_data)
+            # calculate the sentiment from secondary articles
+            if len(analyze_data.linking_articles_data) > 0:
+                relational_sentiment = sum(i[1] for i in analyze_data.linking_articles_data) / \
+                                       len(analyze_data.linking_articles_data)
+            # scale the sentiment values and combine them
+            analyze_data.stock.sentiment = (primary_sentiment * 0.8 + relational_sentiment * 0.2) / 2

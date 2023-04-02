@@ -8,12 +8,13 @@ from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
 
 # CONSTANTS
 default_settings = StockAnalyzerSettings(id='all_tickers', articles_per_ticker=20, use_cache=True,
-                                         search_focus='Competitors')
+                                         search_focus='Stock')
 
 def run_analysis() -> None:
 
     tickers = get_tickers()
     analyzer = StockAnalyzer(tickers, default_settings)
+    print("done")
 
 
 if __name__ == '__main__':
