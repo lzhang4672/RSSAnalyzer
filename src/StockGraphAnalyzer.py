@@ -27,7 +27,7 @@ class StockGraphAnalyzer:
         Generates the graph based on data from self.analyzer
         """
         tickers = self.analyzer.tickers
-        data = self.analyzer.analyze_data
+        data = self.analyzer.analyzed_data
         industries = {}
 
         # add all the company nodes first
@@ -120,7 +120,7 @@ class StockGraphAnalyzer:
         node1 = self.graph.nodes['NKE']
         node2 = self.graph.nodes['UAA']
         print(node1, node2)
-        print(dfs(node1, node2, {node1}))
+        print(self.find_best_path(node1, node2))
 
     def rank_node_importance(self) -> list[Node]:
         """
@@ -128,16 +128,39 @@ class StockGraphAnalyzer:
         Importance score is calculated based on how many cross-references it has
         """
 
+    def find_best_path(self, cur_node: Node, end_node: Node) -> list[Edge] | None:
+        """
+        Returns the EDGES traversed by the shortest path to end_node from start_node, otherwise returns none if it
+        doesn't exist. This will be used as a helper function for StockGraphAnalyzer._get_edge_betweenness
+        Uses kruskal's algorithm to manage weighed edges. Edges are sorted based on average weight
+        """
+        queue = deque([edge for edge in cur_node.edges])
+        edges = set()
+        sorted_edges = sorted([edge for edge in self.graph.edges], key=lambda edge: edge.get_average_weight())
+        roots = {key: key for key in self.graph.nodes}
+        for edge in sorted_edges:
+            node1, node2 = edge.u, edge.v
 
-def find_best_path(cur_node: Node, end_node: Node) -> list[Edge] | None:
-    """
-    Returns the EDGES traversed by the shortest path to end_node from start_node, otherwise returns none if it
-    doesn't exist. This will be used as a helper function for StockGraphAnalyzer._get_edge_betweenness
-    Uses prim's algorithm to manage weighed edges
-    """
-    queue = deque([cur_node])
-    edges = set()
-    while queue:
+    def _root(self, node: str, roots: dict[str, str]) -> str:
+        """
+        Helper for find_best_path
+
+        Searches for and returns the "root" of a node. This will help with checking if two nodes are connected
+        During the searching process, modifies "root" dict/disjoint set to keep track of cycles
+        """
+        while roots[node] != node:
+            roots[node] = roots[roots[node]]
+            node = root[node]
+        return node
+
+    def _union(self, node1: str, node2: str, roots: dict[str, str]) -> None:
+        """
+        Links two nodes together, bascially "union" for a disjoint set
+        """
+        rootA, rootB = self._root(node1, roots), self._root(node2, roots)
+        roots[rootA] = roots[rootB]
+
+
 
 
 # for testing

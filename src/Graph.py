@@ -40,6 +40,9 @@ class Node:
         self.neighbours = set()
         self.edges = set()
 
+    def get_as_key(self):
+        raise NotImplementedError
+
 
 @check_contracts
 class CompanyNode(Node):
@@ -73,6 +76,9 @@ class CompanyNode(Node):
     def __str__(self) -> str:
         return f'<{self.name}: ticker={self.ticker},sen={self.sentiment},industry={self.industry}>'
 
+    def get_as_key(self):
+        return self.ticker
+
 
 @check_contracts
 class IndustryNode(Node):
@@ -100,6 +106,8 @@ class IndustryNode(Node):
     def __str__(self) -> str:
         return f'<{self.name}:cap={self.industry_cap},sen={self.sentiment}>'
 
+    def get_as_key(self):
+        return self.name
 
 class Edge:
     """
@@ -125,6 +133,9 @@ class Edge:
         self.u_v_weight = u_v_weight
         self.v_u_weight = v_u_weight
 
+    def get_average_weight(self):
+        return (self.u_v_weight + self.v_u_weight) / 2
+
 
 @check_contracts
 class Graph:
@@ -135,11 +146,11 @@ class Graph:
         - nodes: a dictionary mapping the node name to the node object
     """
     nodes: dict[str, Node]
-    edges: dict[tuple[str, str], Edge]
+    edges: set[Edge]
 
     def __init__(self) -> None:
         self.nodes = {}
-        self.edges = {}
+        self.edges = set()
 
     def add_industry_node(self, name: str, industry_cap: float, sentiment: float) -> None:
         """
@@ -167,8 +178,7 @@ class Graph:
             v_node.neighbours.add(u_node)
             u_node.edges.add(new_edge)
             v_node.edges.add(new_edge)
-            self.edges[(u, v)] = new_edge
-            self.edges[(v, u)] = new_edge
+            self.edges.add(new_edge)
         else:
             raise ValueError
 
