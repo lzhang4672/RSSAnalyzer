@@ -136,6 +136,8 @@ class Edge:
     def get_average_weight(self):
         return (self.u_v_weight + self.v_u_weight) / 2
 
+    def __str__(self):
+        return f'{self.u} - {self.v}'
 
 @check_contracts
 class Graph:
@@ -180,14 +182,6 @@ class Graph:
             self.edges.add(new_edge)
         else:
             raise ValueError
-
-    def get_neighbours_for_node(self, node: Node) -> list[Node]:
-        """
-        Returns the nodes that are connected with the current node in this graph.
-
-        Raise a ValueError if the node does not appear in this graph.
-        """
-        return [neighbour for neighbour in node.edges]
 
     def get_node_by_name(self, name: str) -> Node:
         """
