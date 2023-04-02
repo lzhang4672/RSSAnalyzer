@@ -17,6 +17,7 @@ class IndustryData:
     sentiment: list[float]
     market_cap: float
 
+
 class StockGraphAnalyzer:
     """
     A class for a graph generated based on a stock
@@ -58,17 +59,18 @@ class StockGraphAnalyzer:
                 )
                 self.graph.add_company_node(new_node)
 
-            # will be used when adding industry nodes to graph
-            # note that new_node.sentiment * new_node.market_cap allows me to weigh the overall sentiment for industry
-            # based on the market cap
-            if ticker_info['Industry'] not in industries:
-                industries[ticker_info['Industry']] = IndustryData(tickers=[ticker],
-                                                                   sentiment=[new_node.sentiment * new_node.market_cap],
-                                                                   market_cap=new_node.market_cap)
-            else:
-                industries[ticker_info['Industry']].tickers.append(ticker)
-                industries[ticker_info['Industry']].sentiment.append(new_node.sentiment * new_node.market_cap)
-                industries[ticker_info['Industry']].market_cap += new_node.market_cap
+                # will be used when adding industry nodes to graph
+                # note that new_node.sentiment * new_node.market_cap allows me to weigh the overall sentiment for
+                # industry based on the market cap
+                if ticker_info['Industry'] not in industries:
+                    industries[ticker_info['Industry']] = IndustryData(tickers=[ticker],
+                                                                       sentiment=[
+                                                                           new_node.sentiment * new_node.market_cap],
+                                                                       market_cap=new_node.market_cap)
+                else:
+                    industries[ticker_info['Industry']].tickers.append(ticker)
+                    industries[ticker_info['Industry']].sentiment.append(new_node.sentiment * new_node.market_cap)
+                    industries[ticker_info['Industry']].market_cap += new_node.market_cap
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
         created_edges = set()
@@ -87,7 +89,8 @@ class StockGraphAnalyzer:
         for industry in industries:
             values = industries[industry]
             sentiment = sum(values.sentiment) / values.market_cap
-            self.graph.add_industry_node(industry, values.market_cap, sentiment)
+            new_node = IndustryNode(industry, values.market_cap, sentiment)
+            self.graph.add_industry_node(new_node)
             # add edges to industry node (connect to tickers)
             # edge weight based on market cap / total market cap (how big of a % does the ticker hold)
             for index in range(len(values.tickers)):
@@ -109,6 +112,15 @@ class StockGraphAnalyzer:
         Returns the best neighbouring node to the node given.
         If the node is not connected to any other nodes, or all connected nodes have a lower sentiment, returns None
         """
+        if len(node.neighbour) == 0:
+            return None
+        best = node
+        for neighbour in node.neighbour:
+            if isinstance(neighbour, IndustryNode):
+                continue
+            elif neighbour.sentiment > best.sentiment:
+                best = neighbour
+        return best
 
     def find_community(self) -> set[list[Node]]:
         """
@@ -131,18 +143,26 @@ class StockGraphAnalyzer:
         Importance score is calculated based on how many cross-references it has
         """
 
-    def find_best_path(self, cur_node: Node, end_node: Node) -> list[Edge] | None:
+    def create_mst(self) -> None:
         """
         Returns the EDGES traversed by the shortest path to end_node from start_node, otherwise returns none if it
         doesn't exist. This will be used as a helper function for StockGraphAnalyzer._get_edge_betweenness
         Uses kruskal's algorithm to manage weighed edges. Edges are sorted based on average weight
         """
         queue = deque([edge for edge in cur_node.edges])
-        edges = set()
-        sorted_edges = sorted([edge for edge in self.graph.edges], key=lambda edge: edge.get_average_weight())
+        mst = Graph()
+        sorted_edges = sorted([edge for edge in self.graph.edges], key=lambda edge: edge.get_average_weight(),
+                              reverse=True)
         roots = {key: key for key in self.graph.nodes}
         for edge in sorted_edges:
-            node1, node2 = edge.u, edge.v
+            node1, node2 = edge.u.get_as_key(), edge.v.get_as_key()
+            if self._root(node1, roots) == self._root(node2, roots):
+                self._union(node1, node2, roots)
+                if isinstance(node1, IndustryNode):
+                    mst.add_industry_node(node1)
+                else:
+                    mst.add_company_node(node2)
+                mst.edges.add(edge)
 
     def _root(self, node: str, roots: dict[str, str]) -> str:
         """
@@ -162,8 +182,6 @@ class StockGraphAnalyzer:
         """
         rootA, rootB = self._root(node1, roots), self._root(node2, roots)
         roots[rootA] = roots[rootB]
-
-
 
 
 # for testing

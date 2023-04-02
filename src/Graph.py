@@ -152,12 +152,11 @@ class Graph:
         self.nodes = {}
         self.edges = set()
 
-    def add_industry_node(self, name: str, industry_cap: float, sentiment: float) -> None:
+    def add_industry_node(self, node: IndustryNode) -> None:
         """
         Adds an IndustryNode to the graph
         """
-        new_node = IndustryNode(name, industry_cap, sentiment)
-        self.nodes[name] = new_node
+        self.nodes[node.name] = new_node
 
     def add_company_node(self, node: CompanyNode) -> None:
         """
