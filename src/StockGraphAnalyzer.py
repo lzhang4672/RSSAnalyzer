@@ -5,7 +5,17 @@ from Graph import Graph, CompanyNode, IndustryNode, Edge, Node
 from StockAnalyzer import StockAnalyzer
 from StockInfo import get_info_from_ticker, get_tickers
 from collections import deque
+from dataclasses import dataclass
 
+
+@dataclass
+class IndustryData:
+    """
+    Dataclass to keep track of temporary data for an IndustryNode
+    """
+    tickers: list[str]
+    sentiment: list[float]
+    market_cap: float
 
 class StockGraphAnalyzer:
     """
@@ -60,12 +70,13 @@ class StockGraphAnalyzer:
             # note that new_node.sentiment * new_node.market_cap allows me to weigh the overall sentiment for industry
             # based on the market cap
             if ticker_info['Industry'] not in industries:
-                industries[ticker_info['Industry']] = [[ticker], [new_node.sentiment * new_node.market_cap],
-                                                       new_node.market_cap]
+                industries[ticker_info['Industry']] = IndustryData(tickers=[ticker],
+                                                                   sentiment=[new_node.sentiment * new_node.market_cap],
+                                                                   market_cap=new_node.market_cap)
             else:
-                industries[ticker_info['Industry']][0].append(ticker)
-                industries[ticker_info['Industry']][1].append(new_node.sentiment * new_node.market_cap)
-                industries[ticker_info['Industry']][2] += new_node.market_cap
+                industries[ticker_info['Industry']].tickers.append(ticker)
+                industries[ticker_info['Industry']].sentiment.append(new_node.sentiment * new_node.market_cap)
+                industries[ticker_info['Industry']].market_cap += new_node.market_cap
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
         created_edges = set()
@@ -83,12 +94,12 @@ class StockGraphAnalyzer:
         # add industry nodes
         for industry in industries:
             values = industries[industry]
-            sentiment = sum(values[1]) / values[2]
-            self.graph.add_industry_node(industry, values[2], sentiment)
+            sentiment = sum(values.sentiment) / values.market_cap
+            self.graph.add_industry_node(industry, values.market_cap, sentiment)
             # add edges to industry node (connect to tickers)
             # edge weight based on market cap / total market cap (how big of a % does the ticker hold)
-            for index in range(len(values[0])):
-                ticker, weight = values[0][index], values[1][index] / values[2]
+            for index in range(len(values.tickers)):
+                ticker, weight = values.tickers[index], values.sentiment[index] / values.market_cap
                 # from ticker back to industry, the weight will be 0
                 self.graph.add_edge(industry, ticker, weight, 0.0)
 
