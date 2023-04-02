@@ -27,7 +27,7 @@ class StockGraphAnalyzer:
         Generates the graph based on data from self.analyzer
         """
         tickers = self.analyzer.tickers
-        data = self.analyzer.get_data()
+        data = self.analyzer.analyze_data
         industries = {}
 
         # add all the company nodes first
