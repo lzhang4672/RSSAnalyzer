@@ -1,0 +1,2 @@
+class GraphVisualizer:
+    """A class """

@@ -7,8 +7,8 @@ from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
 
 
 # CONSTANTS
-default_settings = StockAnalyzerSettings(id='all_tickers_10_articles', articles_per_ticker=15, use_cache=True,
-                                         search_focus='Competitors')
+default_settings = StockAnalyzerSettings(id='all_tickers_10_articles', articles_per_ticker=10, use_cache=True,
+                                         search_focus='Stock')
 
 def run_analysis() -> None:
 

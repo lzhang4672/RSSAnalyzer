@@ -39,9 +39,9 @@ finbert_tokenizer = BertTokenizer.from_pretrained('yiyanghkust/finbert-tone')
 finbert_get_sentiment = pipeline("text-classification", model=finbert_model, tokenizer=finbert_tokenizer)
 MAX_FINBERT_TOKENS = 512
 FINBERT_LABELS = {
-    'Positive': 10,
+    'Positive': 7,
     'Neutral': 0,
-    "Negative": -10
+    "Negative": -7
 }
 
 # model constants
