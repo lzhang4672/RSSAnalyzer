@@ -177,7 +177,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
     if sentence_counter == 0:
         main_stock_score = title_stock_score
     else:
-        main_stock_score = (title_stock_score * 0.65) + (passage_stock_score * 0.35) / sentence_counter
+        main_stock_score = (title_stock_score * 0.40) + (passage_stock_score * 0.60) / sentence_counter
     # adjustment for other stocks since the article is not primarly focused on the other stocks, make it weigh
     # slightly less
     for stock in sentiment_data:
