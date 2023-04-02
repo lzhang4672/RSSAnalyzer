@@ -153,6 +153,7 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
         title_stock_score = sentiment_data.pop(main_stock.ticker)  # don't want main stock to be in other stocks dict
     content = news_article.sentences
     passage_stock_score = 0
+    sentence_counter = 0
     for passage in content:
         passage_stocks = get_stocks_in_passage(passage)
 
@@ -163,13 +164,20 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
                     sentiment_data[stock] = (sentiment_data[stock] + passage_stocks_sentiment[stock]) / 2
                 else:
                     sentiment_data[stock] = passage_stocks_sentiment[stock]
+            sentence_counter += 1
         elif len(passage_stocks) == 1:
-            sentiment_data[passage_stocks.pop()] = get_sentiment_single(passage)
+            sentiment = get_sentiment_single(passage)
+            if sentiment != 0:
+                sentiment_data[passage_stocks.pop()] = sentiment
+                sentence_counter += 1
         if main_stock.ticker in sentiment_data:
             passage_stock_score += sentiment_data.pop(main_stock.ticker)
 
     # adjustment for main stock - title is more heavily weighted
-    main_stock_score = (title_stock_score * 0.65) + (passage_stock_score * 0.35) / len(content)
+    if sentence_counter == 0:
+        main_stock_score = title_stock_score
+    else:
+        main_stock_score = (title_stock_score * 0.65) + (passage_stock_score * 0.35) / sentence_counter
     # adjustment for other stocks since the article is not primarly focused on the other stocks, make it weigh
     # slightly less
     for stock in sentiment_data:
