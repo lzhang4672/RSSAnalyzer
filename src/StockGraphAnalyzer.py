@@ -62,15 +62,15 @@ class StockGraphAnalyzer:
                 # will be used when adding industry nodes to graph
                 # note that new_node.sentiment * new_node.market_cap allows me to weigh the overall sentiment for
                 # industry based on the market cap
-                if ticker_info['Industry'] not in industries:
-                    industries[ticker_info['Industry']] = IndustryData(tickers=[ticker],
+                if ticker_stock.industry not in industries:
+                    industries[ticker_stock.industry] = IndustryData(tickers=[ticker],
                                                                        sentiment=[
                                                                            new_node.sentiment * new_node.market_cap],
                                                                        market_cap=new_node.market_cap)
                 else:
-                    industries[ticker_info['Industry']].tickers.append(ticker)
-                    industries[ticker_info['Industry']].sentiment.append(new_node.sentiment * new_node.market_cap)
-                    industries[ticker_info['Industry']].market_cap += new_node.market_cap
+                    industries[ticker_stock.industry].tickers.append(ticker)
+                    industries[ticker_stock.industry].sentiment.append(new_node.sentiment * new_node.market_cap)
+                    industries[ticker_stock.industry].market_cap += new_node.market_cap
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
         created_edges = set()
