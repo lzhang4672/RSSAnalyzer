@@ -43,6 +43,15 @@ class Node:
     def get_as_key(self):
         raise NotImplementedError
 
+    def get_pr_score(self):
+        score = 0
+        for edge in self.edges:
+            if edge.u is self:
+                score += edge.u_v_weight
+            else:
+                score += edge.v_u_weight
+        return score / len(self.edges)
+
 
 @check_contracts
 class CompanyNode(Node):
@@ -158,7 +167,7 @@ class Graph:
         """
         Adds an IndustryNode to the graph
         """
-        self.nodes[node.name] = new_node
+        self.nodes[node.name] = node
 
     def add_company_node(self, node: CompanyNode) -> None:
         """
@@ -185,7 +194,7 @@ class Graph:
 
     def get_node_by_name(self, name: str) -> Node:
         """
-        Return the node with the given name in this graph.
+        Return the node with the given name in this graph. (Mostly for testing)
 
         Raise ValueError if the node with the given name is not in this graph.
         """

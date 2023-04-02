@@ -37,7 +37,7 @@ class StockGraphAnalyzer:
         """
         Generates the graph based on data from self.analyzer
         """
-        tickers = self.analyzer.tickers
+        ticker_info = self.analyzer.tickers
         data = self.analyzer.analyzed_data
         industries = {}
 
@@ -62,15 +62,15 @@ class StockGraphAnalyzer:
                 # will be used when adding industry nodes to graph
                 # note that new_node.sentiment * new_node.market_cap allows me to weigh the overall sentiment for
                 # industry based on the market cap
-                if ticker_info['Industry'] not in industries:
-                    industries[ticker_info['Industry']] = IndustryData(tickers=[ticker],
-                                                                       sentiment=[
-                                                                           new_node.sentiment * new_node.market_cap],
-                                                                       market_cap=new_node.market_cap)
+                if ticker_stock.industry not in industries:
+                    industries[ticker_stock.industry] = IndustryData(tickers=[ticker],
+                                                                     sentiment=[
+                                                                         new_node.sentiment * new_node.market_cap],
+                                                                     market_cap=new_node.market_cap)
                 else:
-                    industries[ticker_info['Industry']].tickers.append(ticker)
-                    industries[ticker_info['Industry']].sentiment.append(new_node.sentiment * new_node.market_cap)
-                    industries[ticker_info['Industry']].market_cap += new_node.market_cap
+                    industries[ticker_stock.industry].tickers.append(ticker)
+                    industries[ticker_stock.industry].sentiment.append(new_node.sentiment * new_node.market_cap)
+                    industries[ticker_stock.industry].market_cap += new_node.market_cap
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
         created_edges = set()
@@ -98,15 +98,6 @@ class StockGraphAnalyzer:
                 # from ticker back to industry, the weight will be 0
                 self.graph.add_edge(industry, ticker, weight, 0.0)
 
-    def get_industry_connectivity(self) -> dict[str, float]:
-        """
-        Returns how well each industry node connects to other industry nodes based on the edges that cross
-        connect the nodes from the different industries
-
-        Preconditions:
-            - Assumes the graph has already added all edges for CompanyNodes
-        """
-
     def get_best_neighbour(self, node: Node) -> Node | None:
         """
         Returns the best neighbouring node to the node given.
@@ -122,73 +113,62 @@ class StockGraphAnalyzer:
                 best = neighbour
         return best
 
-    def find_community(self) -> set[list[Node]]:
+    def get_ordered_neighbours(self, node: Node) -> list[Node]:
         """
-        Returns a set of lists. Each list is a set
+        Returns a list containing neighbouring nodes to the node given in sorted order according to edge weight
+        """
+        connected_stocks = {}
+        for edge in node.edges:
+            if edge.u is self:
+                connected_stocks[edge.v] = edge.u_v_weight
+            else:
+                connected_stocks[edge.u] = edge.v_u_weight
+        return sorted([stock for stock in connected_stocks.keys()],
+                      key=lambda stock: connected_stocks[stock], reverse=True)
+
+    def get_best_sentiment_stocks(self):
+        """
+        Returns a list containing nodes in sorted order based on sentiment values
         """
 
-    def _get_edge_highest_betweenness(self) -> list[Edge]:
+    def pagerank(self) -> dict[str, float]:
         """
-        Private helper method for finding communities
-        Returns the edge(s) with the highest "between-ness" as per the Girvan Newman Algorithm
+        Pagerank algorithm based on the simple version from wikipedia:
+        https://en.wikipedia.org/wiki/PageRank#Simplified_algorithm
         """
-        node1 = self.graph.nodes['NKE']
-        node2 = self.graph.nodes['UAA']
-        print(node1, node2)
-        print(self.find_best_path(node1, node2))
+        pagerank_scores = {}
+        for node in set(self.graph.nodes.values()):
+            score = node.get_pr_score()
+            # print(node, score)
+            for linked_node in self._get_linked_nodes(node):
+                if linked_node in pagerank_scores:
+                    pagerank_scores[linked_node] += score
+                else:
+                    pagerank_scores[linked_node] = 0
+        return pagerank_scores
 
-    def get_most_connected_tickers(self, node: Node) -> list[CompanyNode]:
+    def _get_linked_nodes(self, given_node: Node, depth=1) -> set[str]:
         """
-        Returns most connected stocks to the given one
+        Returns all nodes connected to given node, not in any particular order
+        Uses BFS
         """
-        return self.mst
+        queue = deque([given_node])
+        visited = {given_node.get_as_key()}
+        depth_counter = 0
+        while queue and depth_counter < depth:
+            for _ in range(len(queue)):
+                cur = queue.popleft()
+                for neighbour in cur.neighbours:
+                    if neighbour.get_as_key() not in visited:
+                        queue.append(neighbour)
+                        visited.add(neighbour.get_as_key())
+            depth_counter += 1
+        return visited
 
-    def get_most_connected_industries(self):
+    def get_most_popular_nodes(self):
         """
-        Return IndustryNodes in MST
+        Returns a list of nodes that sorts the nodes with highest pagerank scores
         """
-
-    # def create_mst(self) -> None:
-    #     """
-    #     Returns the EDGES traversed by the shortest path to end_node from start_node, otherwise returns none if it
-    #     doesn't exist. This will be used as a helper function for StockGraphAnalyzer._get_edge_betweenness
-    #     Uses kruskal's algorithm to manage weighed edges. Edges are sorted based on average weight
-    #     """
-    #     mst = Graph()
-    #     sorted_edges = sorted([edge for edge in self.graph.edges], key=lambda edge: edge.get_average_weight(),
-    #                           reverse=True)
-    #     roots = {key: key for key in self.graph.nodes}
-    #     for edge in sorted_edges:
-    #         node1, node2 = edge.u, edge.v
-    #         if self._root(node1.get_as_key(), roots) == self._root(node2.get_as_key(), roots):
-    #             self._union(node1, node2, roots)
-    #             if isinstance(node1, IndustryNode):
-    #                 mst.add_industry_node(node1)
-    #                 mst.add_company_node(node2)
-    #             elif isinstance(node2, IndustryNode):
-    #                 mst.add_company_node(node2)
-    #             mst.edges.add(edge)
-    #     print(mst.nodes)
-    #     print(mst.edges)
-
-    def _root(self, node: str, roots: dict[str, str]) -> str:
-        """
-        Helper for find_best_path
-
-        Searches for and returns the "root" of a node. This will help with checking if two nodes are connected
-        During the searching process, modifies "root" dict/disjoint set to keep track of cycles
-        """
-        while roots[node] != node:
-            roots[node] = roots[roots[node]]
-            node = root[node]
-        return node
-
-    def _union(self, node1: str, node2: str, roots: dict[str, str]) -> None:
-        """
-        Links two nodes together, bascially "union" for a disjoint set
-        """
-        rootA, rootB = self._root(node1, roots), self._root(node2, roots)
-        roots[rootA] = roots[rootB]
 
 
 # for testing
@@ -202,7 +182,13 @@ if __name__ == '__main__':
 
     sg = StockGraphAnalyzer(analyzer)
     sg.generate_graph()
-    sg.create_mst()
+    print('generated graph')
+    print(len(sg.graph.nodes))
+    d = sg.pagerank()
+    print(d)
+    ranks = sg.get_ordered_neighbours(sg.graph.get_node_by_name('RBLX'))
+    print('======')
+    print(ranks)
 
     # n1 = CompanyNode('Roblox', 'RBLX', 123.4, 'Technology', 5.0)
     # n2 = CompanyNode('Microsoft', 'MSFT', 123.4, 'Technology', 4.0)
