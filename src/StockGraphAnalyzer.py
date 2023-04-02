@@ -129,22 +129,18 @@ class StockGraphAnalyzer:
         """
 
 
-def bfs(cur_node: Node, end_node: Node) -> set | None:
+def find_best_path(cur_node: Node, end_node: Node) -> list[Edge] | None:
     """
-    Returns the shortest path to end_node from start_node, otherwise returns none if it doesn't exist
-    This will be used as a helper function for StockGraphAnalyzer._get_edge_betweenness
-
+    Returns the EDGES traversed by the shortest path to end_node from start_node, otherwise returns none if it
+    doesn't exist. This will be used as a helper function for StockGraphAnalyzer._get_edge_betweenness
+    Uses prim's algorithm to manage weighed edges
     """
     queue = deque([cur_node])
+    edges = set()
     while queue:
-        for i in range(len(queue)):
-            path = queue.popleft()
-            if path[-1] is end_node:
-                return lst
-            for neighbour in path[-1].neighbours:
 
 
-
+# for testing
 if __name__ == '__main__':
     from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
 
