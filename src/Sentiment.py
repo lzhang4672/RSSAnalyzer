@@ -1,5 +1,6 @@
 """
-Contains all the functions and classes for obtaining the sentiment for an article.
+This Python module contains all the functions and classes for obtaining the sentiment for an article. This provides
+the next step by transforming the scraped and raw data into numbers - usable sentiment scores
 """
 from __future__ import annotations
 from typing import Optional
@@ -25,7 +26,6 @@ except AttributeError:
     pass
 else:
     ssl._create_default_https_context = _create_unverified_https_context
-
 
 # install vader_lexicon model
 nltk.downloader.download('stopwords')
@@ -54,6 +54,7 @@ SET_UP_PROMPT = "Give a sentiment score from -10 to 10 for each company that is 
                 + PROMPT_ERROR + " on any errors.\n"
 MAX_TOKENS = 250
 OPENAI_MAX_REQUESTS = 3
+
 
 @dataclass
 class ArticleSentimentData:
@@ -139,7 +140,6 @@ def get_sentiment_single(passage: str) -> float:
     return sentiment_score
 
 
-
 def get_stocks_in_passage(passage: str) -> set:
     """
     Returns a set containing all the stocks mentioned in the passage as a ticker
@@ -161,6 +161,9 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
     """
     Returns the sentiment data for an article.
     Assumes main_stock is the stock that is mainly being analyzed here
+
+    Preconditions:
+        - news_article is a NewsArticle object that has finished the newscraping process
     """
     title_stocks = get_stocks_in_passage(news_article.title)
     title_stock_score = 0

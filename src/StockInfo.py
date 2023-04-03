@@ -1,10 +1,14 @@
+"""
+This Python module contains the classes
+"""
 from python_ta.contracts import check_contracts
 from dataclasses import dataclass, field
 import csv
 from CSV import read_file
 from typing import Optional
 
-tickers = read_file('data/tickers_data.csv')
+tickers = []
+
 
 @dataclass
 class Stock:
@@ -29,6 +33,37 @@ class Stock:
     market_cap: float
     industry: str
     sentiment: float = 0
+
+
+@check_contracts
+def get_stock_sentiment_as_text(sentiment: float) -> str:
+    """Returns the stock's sentiment value in text representation
+
+    If sentiment <= -5.0, the stock is "extremely bearish"
+    If -5.0 < sentiment < -2.5, the stock is "bearish"
+    If -2.5 <= sentiment <= -0.5, the stock is "slightly bearish"
+    If -0.5 < sentiment < 0.5, the stock is "neutral"
+    If 0.5 <= sentiment <= 2.5, the stock is "slightly bullish"
+    If 2.5 < sentiment < 5.0, the stock is "bullish"
+    If sentiment >= 5.0, the stock is "extremely bullish"
+
+    Preconditions:
+        - -10.0 <= sentiment <= 10.0
+    """
+    if sentiment <= -5.0:
+        return "Extremely Bearish"
+    elif -5.0 < sentiment < -2.5:
+        return "Bearish"
+    elif -2.5 <= sentiment <= -0.5:
+        return "Slightly Bearish"
+    elif -0.5 < sentiment < 0.5:
+        return "Neutral"
+    elif 0.5 <= sentiment <= 2.5:
+        return "Slightly Bullish"
+    elif 2.5 < sentiment < 5.0:
+        return "Bullish"
+    else:
+        return "Extremely Bullish"
 
 
 def get_info_from_ticker(ticker: str) -> dict[str, str] | None:
