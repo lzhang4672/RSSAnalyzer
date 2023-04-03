@@ -175,18 +175,16 @@ class StockGraphAnalyzer:
         """
         all_nodes = set(self.graph.nodes.values())
         for node in all_nodes:
-            # score = node.get_pr_score()
-            # if depth is not None:
-            #     linked_nodes = self._get_linked_nodes(node, depth)
-            # else:
-            #     linked_nodes = self._get_linked_nodes(node, 1)
-            # for linked_node in linked_nodes:
-            #     if linked_node in self.pagerank_scores:
-            #         self.pagerank_scores[linked_node] += score
-            #     else:
-            #         self.pagerank_scores[linked_node] = score
-            vis, score = self._get_linked_nodes(node, depth)
-            self.pagerank_scores[node.get_as_key()] = score
+            score = node.get_pr_score()
+            if depth is not None:
+                linked_nodes = self._get_linked_nodes(node, depth)
+            else:
+                linked_nodes = self._get_linked_nodes(node, 1)
+            for linked_node in linked_nodes:
+                if linked_node in self.pagerank_scores:
+                    self.pagerank_scores[linked_node] += score
+                else:
+                    self.pagerank_scores[linked_node] = score
         # store ordered stocks based on pagerank
         keys = set(self.pagerank_scores.keys())
         self.ordered_pagerank_scores = \
@@ -198,7 +196,7 @@ class StockGraphAnalyzer:
         """
         self._run_pagerank_algorithm(8)
 
-    def _get_linked_nodes(self, given_node: Node, depth: int) -> tuple[set[str], float]:
+    def _get_linked_nodes(self, given_node: Node, depth: int) -> set[str]:
         """
         Returns all nodes connected to given node, not in any particular order
         Uses BFS with depth, -> gets the connected nodes within the depth parameter away.
@@ -208,19 +206,16 @@ class StockGraphAnalyzer:
         """
         queue = deque([given_node])
         visited = {given_node.get_as_key()}
-        accumlated_score = 0
         depth_counter = 0
         while queue and depth_counter < depth:
             for _ in range(len(queue)):
                 cur = queue.popleft()
                 for neighbour in cur.neighbours:
                     if neighbour.get_as_key() not in visited:
-                        accumlated_score += neighbour.get_pr_score()
                         queue.append(neighbour)
                         visited.add(neighbour.get_as_key())
             depth_counter += 1
-        visited.remove(given_node.get_as_key())
-        return visited, accumlated_score
+        return visited
 
 
 if __name__ == '__main__':
