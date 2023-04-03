@@ -6,7 +6,7 @@ from StockAnalyzer import StockAnalyzer
 from StockInfo import get_info_from_ticker, get_tickers
 from collections import deque
 from dataclasses import dataclass
-
+from typing import Optional
 
 @dataclass
 class IndustryData:
@@ -164,8 +164,8 @@ class StockGraphAnalyzer:
 if __name__ == '__main__':
     from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
 
-    default_settings = StockAnalyzerSettings(id='all_tickers', articles_per_ticker=20, use_cache=True,
-                                             search_focus='Competitors')
+    default_settings = StockAnalyzerSettings(id='all_tickers_10_articles', articles_per_ticker=10, use_cache=True,
+                                         search_focus='Stock')
     tickers = get_tickers()
     analyzer = StockAnalyzer(tickers, default_settings)
 

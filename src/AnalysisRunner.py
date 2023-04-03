@@ -12,9 +12,12 @@ please consult our Course Syllabus.
 
 This file is Copyright (c) 2023 Mark Zhang, Li Zhang and Luke Zhang
 """
-import StockAnalyzer
+import CSV
+import StockInfo
 from StockInfo import get_tickers
 from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
+from StockGraphAnalyzer import StockGraphAnalyzer
+from GraphVisualizer import GraphVisualizer
 import os
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -32,9 +35,13 @@ def run_analysis() -> None:
     Preconditions:
         - default settings is valid
     """
+    StockInfo.tickers = CSV.read_file('data/tickers_data.csv')
     tickers = get_tickers()
     analyzer = StockAnalyzer(tickers, default_settings)
-    print("done")
+    stock_graph_analyzer = StockGraphAnalyzer(analyzer)
+    stock_graph_analyzer.generate_graph()
+    graph_visualizer = GraphVisualizer(default_settings.id, stock_graph_analyzer.graph)
+    graph_visualizer.show_graph()
 
 
 if __name__ == '__main__':

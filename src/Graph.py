@@ -60,7 +60,7 @@ class Node:
         self.neighbours is guaranteed to be empty, thus this method returns an empty array
         """
         connected_stocks = {}
-        for edge in node.edges:
+        for edge in self.edges:
             if edge.u is self:
                 connected_stocks[edge.v] = edge.u_v_weight
             else:

@@ -84,37 +84,6 @@ class StockAnalyzerSettings:
     search_focus: str = 'Stock'
 
 
-# static methods
-@check_contracts
-def get_stock_sentiment_as_text(stock: Stock) -> str:
-    """Returns the stock's sentiment value in text representation
-
-    If stock.sentiment <= -5.0, the stock is "extremely bearish"
-    If -5.0 < stock.sentiment < -2.5, the stock is "bearish"
-    If -2.5 <= stock.sentiment <= -0.5, the stock is "slightly bearish"
-    If -0.5 < stock.sentiment < 0.5, the stock is "neutral"
-    If 0.5 <= stock.sentiment <= 2.5, the stock is "slightly bullish"
-    If 2.5 < stock.sentiment < 5.0, the stock is "bullish"
-    If stock.sentiment >= 5.0, the stock is "extremely bullish"
-
-    Preconditions:
-        - -10.0 <= stock.sentiment <= 10.0
-    """
-    if stock.sentiment <= -5.0:
-        return "extremely bearish"
-    elif -5.0 < stock.sentiment < -2.5:
-        return "bearish"
-    elif -2.5 <= stock.sentiment <= -0.5:
-        return "slightly bearish"
-    elif -0.5 < stock.sentiment < 0.5:
-        return "neutral"
-    elif 0.5 <= stock.sentiment <= 2.5:
-        return "slightly bullish"
-    elif 2.5 < stock.sentiment < 5.0:
-        return "bullish"
-    else:
-        return "extremely bullish"
-
 
 # helper methods
 @check_contracts
