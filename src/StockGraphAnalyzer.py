@@ -218,25 +218,4 @@ class StockGraphAnalyzer:
         return visited
 
 
-# for testing
-if __name__ == '__main__':
-    from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
 
-    default_settings = StockAnalyzerSettings(id='all_tickers_10_articles', articles_per_ticker=10, use_cache=True,
-                                             search_focus='Stock')
-    tickers = get_tickers()
-    analyzer = StockAnalyzer(tickers, default_settings)
-
-    sg = StockGraphAnalyzer(analyzer)
-    sg.generate_graph()
-    print('generated graph')
-    print(len(sg.graph.nodes))
-    d = sg.pagerank()
-    print(d)
-    ranks = sg.get_ordered_neighbours(sg.graph.get_node_by_name('RBLX'))
-    print('======')
-    print(ranks)
-
-    # n1 = CompanyNode('Roblox', 'RBLX', 123.4, 'Technology', 5.0)
-    # n2 = CompanyNode('Microsoft', 'MSFT', 123.4, 'Technology', 4.0)
-    # print(isinstance(n1, CompanyNode))

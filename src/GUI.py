@@ -1,20 +1,47 @@
 from tkinter import *
-"""
-This python module contains SearchBar, DisplayList, ScrapeLive, LoadPreset and Main to display a GUI
+from python_ta.contracts import check_contracts
+import CSV
+import GUI
+from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
+from StockGraphAnalyzer import StockGraphAnalyzer
+from GraphVisualizer import GraphVisualizer
+from StockInfo import get_tickers
+import os
 
-Copyright and Usage Information
-===============================
+# constants
 
-This file is provided solely for the personal and private use of TAs and professors
-taking CSC111 at the University of Toronto St. George campus. All forms of
-distribution of this code, whether as given or with any changes, are
-expressly prohibited. For more information on copyright for CSC111 materials,
-please consult our Course Syllabus.
+SCRAPE_CACHE_ROOT = './scrape_cache/'
+PRESETS_ROOT = './data/presets/'
 
-This file is Copyright (c) 2023 Mark Zhang, Li Zhang and Luke Zhang
-"""
 
-class SearchBar():
+# top level functions
+
+def get_file_names_from_path(path: str) -> list[str]:
+    """Returns all file names in the specified path. This function removes the hidden files associated in the directory.
+
+    Preconditions:
+        - path is a valid path
+    """
+    ret = []
+    for file_name in os.listdir(path):
+        if not file_name.startswith('.'):
+            # make sure it isn't a hidden file (hidden files start with .)
+            ret += [file_name]
+    return ret
+
+
+def get_live_ticker_presets() -> dict[str, list[dict[str, str]]]:
+    """Returns a dictionary of the ticker presets with the key being the file name and the value being the parsed
+    csv file """
+    ret = {}
+    files = get_file_names_from_path(PRESETS_ROOT)
+    for file_name in files:
+        if file_name not in ret:
+            ret[file_name] = CSV.read_file(PRESETS_ROOT + file_name)
+    return ret
+
+
+class SearchBar:
     """
     A class representing a search bar, and the functions will mimic a search bar behaviour
     (ie. when the search bar has been clicked on, a drop-down list of suggestions will pop up.
@@ -40,6 +67,7 @@ class SearchBar():
         self.label = Label(self.root, text=name, pady=20)
         self.label.pack()
 
+        self.max_display = 5
         self.data = data
 
         self.entry = Entry(self.root, state='normal', width=40)
@@ -85,7 +113,8 @@ class SearchBar():
         x = self.entry.winfo_x()
         y = self.entry.winfo_y() + self.entry.winfo_height()
         w = self.entry.winfo_width()
-        self.listbox = Listbox(self.root, width=w, height=5, font=("Helvetica", 12))
+        self.listbox = Listbox(self.root, width=w, height=self.max_display,
+                               font=("Helvetica", 12))
         self.listbox.place(x=x, y=y, width=w)
         self.update_listbox()
         self.listbox.bind("<<ListboxSelect>>", self.check_selection)
@@ -198,10 +227,6 @@ class ScrapeLive:
         self.root.mainloop()
 
     def generate_scraping_data(self):
-        """
-        Checks if user entered all valid entries into num_articles, saved_name, and tickers,
-        and respectfully runs the live scraping results.
-        """
         try:
             num_articles = int(self.number_of_articles.get())
         except ValueError:
@@ -278,35 +303,39 @@ class LoadPreset:
         # self.companies should be replaced with analyzed data from graph.py or stockgraphanalyzer.py in list[str]
 
 
-class Main:
+class MainMenu:
     """
     A class representing the Main Menu pop-up window.
 
     Instance Attributes:
-    - root is a Tk window that is created in the initializer
-    - preset_data is a list of preset data
-    - ticker_data is a list of tickers avaliable
-    - search_bar is a SearchBar provided with preset data
-    - preset_button is a Button that opens LoadedResults window
-    - scrape_button is a Button that opens ScrapeLlive window
+        - cache_preset_data is a list of cached preset data
+        - ticker_preset_data is a dictionary with ticker preset file names as the key and the parsed csv files as the
+          value
+    Private Instance Attributes:
+        - _root: a Tk window that is created in the initializer
+        - _ticker_preset: a list of preset file names
+        - _search_bar is a SearchBar provided with preset data
+        - _preset_button is a Button that loads a cached preset file
+        - _scrape_button is a Button that starts a live scrape event
     """
-    root: Tk
-    preset_data: list[str]
-    ticker_data: list[str]
-    search_bar: SearchBar
-    preset_button: Button
-    scrape_button: Button
+    _root: Tk
+    cache_preset_data: list[str]
+    ticker_preset_data: dict[str, list[dict[str, str]]]
+    _ticker_preset: list[str]
+    _search_bar: SearchBar
+    _preset_button: Button
+    _scrape_button: Button
 
-    def __init__(self, preset_data, ticker_data):
+    def __init__(self):
         self.root = Tk()
         self.root.geometry('500x300')
-        self.root.title("Main Screen")
+        self.root.title("StocksConnectionAnalyzer")
         self.root.update()
 
-        self.search_bar = SearchBar(self.root, "Preset Selection", preset_data)
+        self.cache_preset_data = get_file_names_from_path(SCRAPE_CACHE_ROOT)
+        self.ticker_preset_data = get_live_ticker_presets()
 
-        self.preset_data = preset_data
-        self.ticker_data = ticker_data
+        self.search_bar = SearchBar(self.root, "Preset Selection", self.cache_preset_data)
 
         self.preset_button = Button(self.root, text='Load Preset', command=self.load_preset)
         self.scrape_button = Button(self.root, text='Scrape Live', command=self.scrape_live)
@@ -326,10 +355,20 @@ class Main:
         If the entry is valid, then opens up the LoadPreset window.
         """
         selected_item = self.search_bar.entry.get()
-        if selected_item != '':
-            LoadPreset(self.ticker_data)
-        else:
-            print("did not input a valid stock name")
+        if selected_item in self.cache_preset_data:
+            # load settings
+            default_settings = StockAnalyzerSettings(id=selected_item, articles_per_ticker=10,
+                                                     use_cache=True,
+                                                     search_focus='Stock')
+            tickers = get_tickers()
+            analyzer = StockAnalyzer(tickers, default_settings)
+            stock_graph_analyzer = StockGraphAnalyzer(analyzer)
+            # generate the graph
+            stock_graph_analyzer.generate_graph()
+            # run preprocessed algorithms
+            stock_graph_analyzer.run_preprocessed_algorithms()
+            graph_visualizer = GraphVisualizer(default_settings.id, stock_graph_analyzer)
+            graph_visualizer.show_graph()
 
     def scrape_live(self):
         """
@@ -340,10 +379,3 @@ class Main:
             ScrapeLive(self.ticker_data)
         else:
             print("did not input a valid stock name")
-
-
-if __name__ == "__main__":
-    preset = ["amour", "gloire", "pouvoir de l'instant présent", "beauté", "guerre", "action"]
-    tickers = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB', 'TSLA', 'NVDA', 'JPM', 'WMT', 'V']
-
-    main_screen = Main(preset, tickers)

@@ -7,15 +7,17 @@ from StockInfo import get_stock_sentiment_as_text
 import webbrowser
 import os
 
+# path to store graphs
 GRAPHS_STORAGE = '/graphs/'
 
+# physics settings for the graph
 JSON_OPTIONS = """"
 const options = {
   "physics": {
     "forceAtlas2Based": {
-      "gravitationalConstant": -14,
-      "springLength": 600,
-      "springConstant": 0.15,
+      "gravitationalConstant": -10,
+      "springLength": 400,
+      "springConstant": 0.1,
       "damping": 1
     },
     "minVelocity": 0.01,
@@ -24,6 +26,7 @@ const options = {
   }
 }
 """
+# dictionary containing industry to color values
 INDUSTRY_COLORS = {
     'Financial Services': '#a7bac4',
     'Pharmacy and Health Care': '#a485c9',

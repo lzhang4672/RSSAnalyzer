@@ -1,16 +1,32 @@
-# This is a sample Python script.
+"""
+This Python Module contains a function to run StockAnalyzer.py
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+Copyright and Usage Information
+===============================
 
+This file is provided solely for the personal and private use of TAs and professors
+taking CSC111 at the University of Toronto St. George campus. All forms of
+distribution of this code, whether as given or with any changes, are
+expressly prohibited. For more information on copyright for CSC111 materials,
+please consult our Course Syllabus.
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+This file is Copyright (c) 2023 Mark Zhang, Li Zhang and Luke Zhang
+"""
+from python_ta.contracts import check_contracts
+import CSV
+import StockInfo
+import GUI
+from StockInfo import get_tickers
+from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
+from StockGraphAnalyzer import StockGraphAnalyzer
+from GraphVisualizer import GraphVisualizer
+import os
 
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    # set relative path
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    # set up StockInfo's data
+    StockInfo.tickers = CSV.read_file('data/tickers_data.csv')
+    # load in GUI
+    main_screen = GUI.MainMenu()
+    # run_analysis()

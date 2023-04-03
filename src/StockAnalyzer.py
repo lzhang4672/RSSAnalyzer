@@ -66,7 +66,7 @@ class StockAnalyzerSettings:
                   articles and instead build itself of the cached data.
                   Otherwise, the object will scrape the internet for news articles associated with the tickers and
                   build itself based on that while saving a cache with the associated id.
-        - id: a string representing the id associated with analyzation.
+        - id: a string representing the cached csv file name associated with analyzation.
         - cache_root: a string representing the folder location of where the cached analyzed data should be stored.
         - output_info: a boolean representing if information should be printed to the console on the analyzation process
 
@@ -162,7 +162,7 @@ class StockAnalyzer:
                 'LinkingArticlesSentimentScores': str(linking_articles_sentiment_scores),
                 'DoneScraping': str(analyze_data.done_scraping)
             }]
-        write_to_file(CACHE_DIRECTORY + self._settings.id + '_cache.csv', CACHE_HEADERS, row_data)
+        write_to_file(CACHE_DIRECTORY + self._settings.id, CACHE_HEADERS, row_data)
 
     #@check_contracts
     def remove_linking_article_by_url(self, ticker: str, url: str) -> None:
@@ -268,7 +268,7 @@ class StockAnalyzer:
             if self._settings.output_info:
                 print("Loading Scrape Data From Cache")
             # load cached data if it exists
-            cached_data = read_file(CACHE_DIRECTORY + self._settings.id + '_cache.csv')
+            cached_data = read_file(CACHE_DIRECTORY + self._settings.id)
             # load the cached data into local variables
             for row in cached_data:
                 # get all row data

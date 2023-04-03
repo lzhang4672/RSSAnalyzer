@@ -11,3 +11,4 @@ torch
 nltk
 openai
 pyvis==0.3.1
+pygame
