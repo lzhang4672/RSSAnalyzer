@@ -1,7 +1,7 @@
 from tkinter import *
 
 
-class SearchBar:
+class SearchBar():
     root: Tk or Frame
     label: Label
     max_display: int
@@ -26,7 +26,7 @@ class SearchBar:
 
         self.entry.bind("<FocusIn>", self.focus_in)
         self.entry.bind("<KeyRelease>", self.key_release)
-        self.root.bind("<Button-1>", self.click_outside)
+        self.entry.bind("<FocusOut>", self.click_outside)
 
     def focus_in(self, event):
         if self.listbox:
@@ -38,18 +38,15 @@ class SearchBar:
             self.update_listbox()
 
     def click_outside(self, event):
-        if event.widget == self.entry:
-            return
-        else:
-            self.delete_listbox()
-            self.root.focus()
+        self.delete_listbox()
+        self.root.focus()
 
     def create_listbox(self):
         x = self.entry.winfo_x()
         y = self.entry.winfo_y() + self.entry.winfo_height()
         w = self.entry.winfo_width()
-        print(x, y, w)
-        self.listbox = Listbox(self.root, width=w, height=self.max_display, font=("Helvetica", 12))
+        self.listbox = Listbox(self.root, width=w, height=self.max_display,
+                               font=("Helvetica", 12))
         self.listbox.place(x=x, y=y, width=w)
         self.update_listbox()
         self.listbox.bind("<<ListboxSelect>>", self.check_selection)
@@ -66,15 +63,14 @@ class SearchBar:
         self.listbox.insert(END, *matches[:self.max_display])
 
     def delete_listbox(self):
-        print(1)
         if self.listbox:
             self.listbox.destroy()
             self.listbox = None
 
 
-class Scrape:
+class ScrapeLive:
     root: Tk
-    data: list[str]
+    tickers: list[str]
     search_bar: SearchBar
     number_of_articles: Entry
     saved_name: Entry
@@ -86,34 +82,33 @@ class Scrape:
         self.root.title("Scrape Live")
         self.root.update()
 
-        self.data = data
+        self.tickers = data
 
-        label1 = Label(self.root, text="Number of articles per ticker")
-        label1.pack(pady=20)
+        label1 = Label(self.root, text="Number of articles per ticker", pady=20)
+        label1.pack()
 
         self.number_of_articles = Entry(self.root, state='normal', width=40)
         self.number_of_articles.pack()
 
-        label2 = Label(self.root, text="Save name")
-        label2.pack(pady=20)
+        label2 = Label(self.root, text="Save name", pady=20)
+        label2.pack()
 
         self.saved_name = Entry(self.root, state='normal', width=40)
         self.saved_name.pack()
 
         self.root.update()
-        frame = Frame(self.root, height=500)
-        self.search_bar = SearchBar(frame, "Tickers Selection", tickers)
-        frame.pack()
 
-        self.start_button = Button(frame, text="Start")
+        self.search_bar = SearchBar(self.root, "Tickers Selection", tickers)
+
+        self.start_button = Button(self.root, text="Start",
+                                   command=self.generate_scraping_data)
         self.start_button.pack(side=BOTTOM)
-        self.root.update()
 
-        self.start_button.bind("<Button-1>", self.generate_scraping_data)
+        self.root.update()
 
         self.root.mainloop()
 
-    def generate_scraping_data(self, event):
+    def generate_scraping_data(self):
         try:
             num_articles = int(self.number_of_articles.get())
         except ValueError:
@@ -124,39 +119,52 @@ class Scrape:
         ticker = self.search_bar.entry.get()
 
         if name != '':
-            # generate scraping progress
             print("generate scraping progress with", name, ticker, num_articles)
+            generate_progress = ScrapeProgress()
         else:
             print("did not enter valid name or ticker")
             return None
 
-class ScrapeProgress:
+
+class LoadPreset:
     root: Tk
-    listbox: Listbox
 
     def __init__(self, data):
         self.root = Tk()
-        self.root.title("Scraping Progress")
-        self.root.geometry('500x300')
+        self.root.geometry('500x400')
 
-        # the Listbox is filled with the initial data
-        self.listbox = Listbox(self.root)
-        for item in data:
-            self.listbox.insert("end", item)
+        self.companies = data # should be a dictionary
 
-        self.scrollbar = tk.Scrollbar(self.root, orient="vertical")
-        self.listbox.config(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.config(command=self.listbox.yview)
+        self.search_bar = SearchBar(self.root, "Company", self.companies)
 
-        self.listbox.pack(side="left", fill="both", expand=True)
-        self.scrollbar.pack(side="right", fill="y")
+        self.load_button = Button(self.root, text="Load", command=self.generate_listboxes)
+        self.load_button.place(in_=self.search_bar.entry, bordermode="outside",
+                               anchor="ne", relx=1.0, rely=0, x=40)
 
-        self.root.mainloop()
+        label1 = Label(self.root, text="Company Details", pady=20)
+        self.frame1 = Frame(self.root)
+        self.scroll_bar1 = Scrollbar(self.frame1, orient=VERTICAL)
+        self.listbox1 = Listbox(self.frame1, width=35, height=5, yscrollcommand=self.scroll_bar1.set)
+        self.scroll_bar1.config(command=self.listbox1.yview)
+        label1.pack()
+        self.scroll_bar1.pack(side=RIGHT, fill=Y)
+        self.frame1.pack()
+        self.listbox1.pack()
 
-    def update_progress(self):
-        for i in range(len(self.listbox.get("0", "end")) - len(self.data)):
-            item = self.data[-i - 1]
-            self.listbox.insert("end", item)
+
+        label2 = Label(self.root, text="Articles Analyzed", pady=20)
+        self.frame2 = Frame(self.root)
+        self.scroll_bar2 = Scrollbar(self.frame2, orient=VERTICAL)
+        self.listbox2 = Listbox(self.frame2, width=35, height=5, yscrollcommand=self.scroll_bar2.set)
+        label2.pack()
+        self.scroll_bar2.pack(side=RIGHT, fill=Y)
+        self.frame2.pack()
+        self.listbox2.pack()
+
+    def generate_listboxes(self):
+        self.listbox1.insert(END, *self.companies)
+
+        self.listbox2.insert(END, *self.companies)
 
 
 class Main:
@@ -164,9 +172,8 @@ class Main:
     preset_data: list[str]
     ticker_data: list[str]
     search_bar: SearchBar
-    preset_button: Button
+    preset_button: Button # these are not necessary
     scrape_button: Button
-    generate_scrape: Scrape or None
 
     def __init__(self, preset_data, ticker_data):
         self.root = Tk()
@@ -179,40 +186,38 @@ class Main:
         self.preset_data = preset_data
         self.ticker_data = ticker_data
 
-        self.preset_button = Button(self.root, text='Load Preset')
-        self.scrape_button = Button(self.root, text='Scrape Live')
-        self.preset_button.pack()
-        self.scrape_button.pack()
-        self.root.update()
-        self.preset_button.place(in_=self.search_bar.entry, bordermode="inside", anchor="nw", relx=0.35, rely=1.0,
-                                 y=110)
-        self.scrape_button.place(in_=self.preset_button, bordermode="outside", anchor="nw", relx=0, rely=1.0, y=5)
+        self.preset_button = Button(self.root, text='Load Preset', command=self.load_preset)
+        self.scrape_button = Button(self.root, text='Scrape Live', command=self.scrape_live)
 
         self.root.update()
+        self.preset_button.place(in_=self.search_bar.entry, bordermode="inside",
+                                 anchor="nw", relx=0.35, rely=1.0, y=110)
+        self.scrape_button.place(in_=self.preset_button, bordermode="outside",
+                                 anchor="nw", relx=0, rely=1.0, y=10)
 
-        self.preset_button.bind("<Button-1>", self.load_preset)
-        self.scrape_button.bind("<Button-1>", self.scrape_live)
+        self.root.update()
 
         self.root.mainloop()
 
-    def load_preset(self, event):
+    def load_preset(self):
         selected_item = self.search_bar.entry.get()
         if selected_item != '':
-
-            print("load preset")
+            LoadPreset(self.ticker_data)
         else:
             print("did not input a valid stock name")
 
-    def scrape_live(self, event):
+    def scrape_live(self):
         selected_item = self.search_bar.entry.get()
         if selected_item != '':
-            self.generate_scrape = Scrape(self.ticker_data)
+            ScrapeLive(self.ticker_data)
             print("scrape live")
         else:
             print("did not input a valid stock name")
 
 
+
 if __name__ == "__main__":
+
     preset = ["amour", "gloire", "pouvoir de l'instant présent", "beauté", "guerre", "action"]
     tickers = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB', 'TSLA', 'NVDA', 'JPM', 'WMT', 'V']
 
