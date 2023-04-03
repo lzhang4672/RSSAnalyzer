@@ -5,7 +5,7 @@ Copyright and Usage Information
 ===============================
 
 This file is provided solely for the personal and private use of TAs and professors
- at the University of Toronto St. George campus. All forms of
+at the University of Toronto St. George campus. All forms of
 distribution of this code, whether as given or with any changes, are
 expressly prohibited. For more information on copyright for CSC111 materials,
 please consult the Course Syllabus.
@@ -175,20 +175,22 @@ class StockGraphAnalyzer:
         """
         all_nodes = set(self.graph.nodes.values())
         for node in all_nodes:
-            score = node.get_pr_score()
-            if depth is not None:
-                linked_nodes = self._get_linked_nodes(node, depth)
-            else:
-                linked_nodes = self._get_linked_nodes(node, 1)
-            for linked_node in linked_nodes:
-                if linked_node in self.pagerank_scores:
-                    self.pagerank_scores[linked_node] += score
-                else:
-                    self.pagerank_scores[linked_node] = score
+            # score = node.get_pr_score()
+            # if depth is not None:
+            #     linked_nodes = self._get_linked_nodes(node, depth)
+            # else:
+            #     linked_nodes = self._get_linked_nodes(node, 1)
+            # for linked_node in linked_nodes:
+            #     if linked_node in self.pagerank_scores:
+            #         self.pagerank_scores[linked_node] += score
+            #     else:
+            #         self.pagerank_scores[linked_node] = score
+            vis, score = self._get_linked_nodes(node, depth)
+            self.pagerank_scores[node.get_as_key()] = score
         # store ordered stocks based on pagerank
-        all_nodes = set(self.pagerank_scores.keys())
+        keys = set(self.pagerank_scores.keys())
         self.ordered_pagerank_scores = \
-            sorted([node for node in all_nodes], key=lambda sort_node: self.pagerank_scores[sort_node], reverse=True)
+            sorted([node for node in keys], key=lambda sort_node: self.pagerank_scores[sort_node], reverse=True)
 
     def run_preprocessed_algorithms(self) -> None:
         """
@@ -196,7 +198,7 @@ class StockGraphAnalyzer:
         """
         self._run_pagerank_algorithm(8)
 
-    def _get_linked_nodes(self, given_node: Node, depth: int) -> set[str]:
+    def _get_linked_nodes(self, given_node: Node, depth: int) -> tuple[set[str], float]:
         """
         Returns all nodes connected to given node, not in any particular order
         Uses BFS with depth, -> gets the connected nodes within the depth parameter away.
@@ -206,16 +208,28 @@ class StockGraphAnalyzer:
         """
         queue = deque([given_node])
         visited = {given_node.get_as_key()}
+        accumlated_score = 0
         depth_counter = 0
         while queue and depth_counter < depth:
             for _ in range(len(queue)):
                 cur = queue.popleft()
                 for neighbour in cur.neighbours:
                     if neighbour.get_as_key() not in visited:
+                        accumlated_score += neighbour.get_pr_score()
                         queue.append(neighbour)
                         visited.add(neighbour.get_as_key())
             depth_counter += 1
-        return visited
+        visited.remove(given_node.get_as_key())
+        return visited, accumlated_score
 
 
+if __name__ == '__main__':
+    import pytest
 
+    pytest.main(['StockGraphAnalyzer.py', '-v'])
+
+    python_ta.check_all(config={
+            'extra-imports': [],  # the names (strs) of imported modules
+            'allowed-io': [],  # the names (strs) of functions that call print/open/input
+            'max-line-length': 120
+        })

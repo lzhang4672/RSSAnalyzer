@@ -2,6 +2,17 @@
 This Python module contains all the nessecary functions and classes for running the functions to get the scraped data
 from NewsScraper.py and then processing the data by running/calling the nessecary classes and functions inside
 Sentiment.py
+
+Copyright and Usage Information
+===============================
+
+This file is provided solely for the personal and private use of TAs and professors
+at the University of Toronto St. George campus. All forms of
+distribution of this code, whether as given or with any changes, are
+expressly prohibited. For more information on copyright for CSC111 materials,
+please consult the Course Syllabus.
+
+This file is Copyright (c) 2023 Mark Zhang, Li Zhang and Luke Zhang
 """
 from __future__ import annotations
 from python_ta.contracts import check_contracts
@@ -30,8 +41,6 @@ SEARCH_FOCUS = {
 }
 
 
-
-
 @dataclass
 class StockAnalyzeData:
     """A dataclass represent the progress of analyzation for a stock
@@ -54,6 +63,7 @@ class StockAnalyzeData:
     linking_articles_data: list[tuple[str, float]] = field(default_factory=list)
     connected_tickers: dict[str, int] = field(default_factory=dict)
     done_scraping: bool = False
+
 
 @dataclass
 class StockAnalyzerSettings:
@@ -85,9 +95,7 @@ class StockAnalyzerSettings:
     search_focus: str = 'Stock'
 
 
-
 # helper methods
-#@check_contracts
 def _get_median_sentiment_score(articles_data: list[tuple[str, float]]) -> float:
     # filter out all the sentiment values that are exactly. Usually, if the sentiment is exactly 0 then we shouldn't
     # count it as the sentiment is too neutral.
@@ -101,6 +109,7 @@ def _get_median_sentiment_score(articles_data: list[tuple[str, float]]) -> float
         return (sorted_articles_data[mid_index][1] + sorted_articles_data[mid_index + 1][1]) / 2.0
     else:
         return float(sorted_articles_data[mid_index][1])
+
 
 class StockAnalyzer:
     """This class that analyzes information for stocks.
@@ -118,7 +127,6 @@ class StockAnalyzer:
     analyzed_data: dict[str, StockAnalyzeData] = {}
     window: Window
 
-    #@check_contracts
     def _save_cache(self) -> None:
         """Called to save the current progress of scraping to a csv file.
         """
