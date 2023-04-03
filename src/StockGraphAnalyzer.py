@@ -118,7 +118,7 @@ class StockGraphAnalyzer:
                         other_freq = float(data[neighbour].connected_tickers[ticker])
                     else:
                         other_freq = 0.0
-                    # print(ticker, neighbour, connected[neighbour], other_freq)
+
                     self.graph.add_edge(ticker, neighbour, float(connected[neighbour]), other_freq)
 
         # add industry nodes
@@ -159,7 +159,7 @@ class StockGraphAnalyzer:
                 best, best_sentiment = neighbour, neighbour.sentiment
         return best
 
-    def _run_pagerank_algorithm(self, depth: Optional[int]) -> None:
+    def _run_pagerank_algorithm(self, depth: int = 1) -> None:
         """
         Returns a dictionary mapping a node (represented by its name or ticker) to it's pagerank score.
         Pagerank algorithm based on the simple version from wikipedia:
@@ -175,18 +175,16 @@ class StockGraphAnalyzer:
         """
         all_nodes = set(self.graph.nodes.values())
         for node in all_nodes:
-            # score = node.get_pr_score()
-            # if depth is not None:
-            #     linked_nodes = self._get_linked_nodes(node, depth)
-            # else:
-            #     linked_nodes = self._get_linked_nodes(node, 1)
-            # for linked_node in linked_nodes:
-            #     if linked_node in self.pagerank_scores:
-            #         self.pagerank_scores[linked_node] += score
-            #     else:
-            #         self.pagerank_scores[linked_node] = score
-            vis, score = self._get_linked_nodes(node, depth)
-            self.pagerank_scores[node.get_as_key()] = score
+            score = node.get_pr_score()
+            if depth is not None:
+                linked_nodes = self._get_linked_nodes(node, depth)
+            else:
+                linked_nodes = self._get_linked_nodes(node, 1)
+            for linked_node in linked_nodes:
+                if linked_node in self.pagerank_scores:
+                    self.pagerank_scores[linked_node] += score
+                else:
+                    self.pagerank_scores[linked_node] = score
         # store ordered stocks based on pagerank
         keys = set(self.pagerank_scores.keys())
         self.ordered_pagerank_scores = \
@@ -198,7 +196,7 @@ class StockGraphAnalyzer:
         """
         self._run_pagerank_algorithm(8)
 
-    def _get_linked_nodes(self, given_node: Node, depth: int) -> tuple[set[str], float]:
+    def _get_linked_nodes(self, given_node: Node, depth: int) -> set[str]:
         """
         Returns all nodes connected to given node, not in any particular order
         Uses BFS with depth, -> gets the connected nodes within the depth parameter away.
@@ -219,8 +217,7 @@ class StockGraphAnalyzer:
                         queue.append(neighbour)
                         visited.add(neighbour.get_as_key())
             depth_counter += 1
-        visited.remove(given_node.get_as_key())
-        return visited, accumlated_score
+        return visited
 
 
 if __name__ == '__main__':
@@ -228,11 +225,9 @@ if __name__ == '__main__':
 
     pytest.main(['StockGraphAnalyzer.py', '-v'])
 
+    import python_ta
     python_ta.check_all(config={
-            'extra-imports': ['Graph', 'StockAnalyzer', 'StockInfo', 'dataclasses', 'typing'],
-            'allowed-io': ['StockAnalyzer._save_cache',
-                       'StockAnalyzer._analyze_stock',
-                       'StockAnalyzer._build_data',
-                       'StockAnalyzer.__init__'],
-            'max-line-length': 120
-        })
+        'extra-imports': ['Graph', 'StockInfo', 'StockVisualizer', 'collections', 'typing', 'dataclass'],
+        'allowed-io': [],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 120
+    })
