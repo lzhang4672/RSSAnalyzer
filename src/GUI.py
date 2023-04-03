@@ -68,6 +68,25 @@ class SearchBar():
             self.listbox = None
 
 
+class DisplayList:
+    root: Tk
+    frame: Frame
+    scrollbar: Scrollbar
+    listbox: Listbox
+
+    def __init__(self, root):
+        self.root = root
+        self.frame = Frame(self.root)
+
+        self.scrollbar = Scrollbar(self.frame, orient=VERTICAL)
+        self.listbox = Listbox(self.frame, width=35, height=5, yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.listbox.yview)
+
+        self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.frame.pack()
+        self.listbox.pack()
+
+
 class ScrapeLive:
     root: Tk
     tickers: list[str]
@@ -119,8 +138,8 @@ class ScrapeLive:
         ticker = self.search_bar.entry.get()
 
         if name != '':
-            print("generate scraping progress with", name, ticker, num_articles)
             generate_progress = ScrapeProgress()
+            # this should be redirected to the live pygame display. able to use name, ticker, and num articles as variables
         else:
             print("did not enter valid name or ticker")
             return None
@@ -128,10 +147,16 @@ class ScrapeLive:
 
 class LoadPreset:
     root: Tk
+    companies: list[str]
+    search_bar: SearchBar
+    load_button: Button
+    display_company_details: DisplayList
+    display_articles_analyzed: DisplayList
+    display_analyzed_data: DisplayList
 
     def __init__(self, data):
         self.root = Tk()
-        self.root.geometry('500x400')
+        self.root.geometry('600x600')
 
         self.companies = data # should be a dictionary
 
@@ -142,29 +167,25 @@ class LoadPreset:
                                anchor="ne", relx=1.0, rely=0, x=40)
 
         label1 = Label(self.root, text="Company Details", pady=20)
-        self.frame1 = Frame(self.root)
-        self.scroll_bar1 = Scrollbar(self.frame1, orient=VERTICAL)
-        self.listbox1 = Listbox(self.frame1, width=35, height=5, yscrollcommand=self.scroll_bar1.set)
-        self.scroll_bar1.config(command=self.listbox1.yview)
         label1.pack()
-        self.scroll_bar1.pack(side=RIGHT, fill=Y)
-        self.frame1.pack()
-        self.listbox1.pack()
 
+        self.display_company_details = DisplayList(self.root)
 
         label2 = Label(self.root, text="Articles Analyzed", pady=20)
-        self.frame2 = Frame(self.root)
-        self.scroll_bar2 = Scrollbar(self.frame2, orient=VERTICAL)
-        self.listbox2 = Listbox(self.frame2, width=35, height=5, yscrollcommand=self.scroll_bar2.set)
         label2.pack()
-        self.scroll_bar2.pack(side=RIGHT, fill=Y)
-        self.frame2.pack()
-        self.listbox2.pack()
+        self.display_articles_analyzed = DisplayList(self.root)
+
+        label3 = Label(self.root, text="Analyzed Data", pady=20)
+        label3.pack()
+        self.display_analyzed_data = DisplayList(self.root)
 
     def generate_listboxes(self):
-        self.listbox1.insert(END, *self.companies)
-
-        self.listbox2.insert(END, *self.companies)
+        self.display_company_details.listbox.insert(END, *self.companies)
+        # self.companies should be replaced with the results of company details from stock analyzer.py or sentiment analyzer.py in list[str]
+        self.display_articles_analyzed.listbox.insert(END, *self.companies)
+        # self.companies should be replaced with results of analyzed articles from stock analyzer.py or sentiment analyzer in list[str]
+        self.display_analyzed_data.listbox.insert(END, *self.companies)
+        # self.companies should be replaced with analyzed data from graph.py or stockgraphanalyzer.py in list[str]
 
 
 class Main:
@@ -172,7 +193,7 @@ class Main:
     preset_data: list[str]
     ticker_data: list[str]
     search_bar: SearchBar
-    preset_button: Button # these are not necessary
+    preset_button: Button
     scrape_button: Button
 
     def __init__(self, preset_data, ticker_data):
@@ -210,10 +231,8 @@ class Main:
         selected_item = self.search_bar.entry.get()
         if selected_item != '':
             ScrapeLive(self.ticker_data)
-            print("scrape live")
         else:
             print("did not input a valid stock name")
-
 
 
 if __name__ == "__main__":
