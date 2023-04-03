@@ -23,7 +23,6 @@ from StockInfo import get_info_from_ticker
 from NewsScraper import NewsArticleContent, NewsScraper, PUBLISH_RANGE, get_content_from_article_url
 from Sentiment import get_sentiment_for_article
 from StockInfo import Stock
-from LiveDisplay import Window
 import time
 import ast
 import random

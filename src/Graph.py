@@ -42,14 +42,14 @@ class Node:
         self.edges = set()
         self.sentiment = sentiment
 
-    def get_as_key(self):
+    def get_as_key(self) -> str:
         """
         Abstract method for getting the name or ticker of this node, because how the node is stored inside Graph's
         node attribute is dependent on whether node is a CompanyNode or IndustryNode
         """
         raise NotImplementedError
 
-    def get_pr_score(self):
+    def get_pr_score(self) -> float:
         """
         Returns the "outgoing" score of this node, basically the score that other nodes will add to their pagerank
         score.
@@ -62,7 +62,7 @@ class Node:
                 score += edge.u_v_weight
             else:
                 score += edge.v_u_weight
-        return score / len(self.edges)
+        return score
 
     def get_ordered_neighbours(self) -> list[Node]:
         """

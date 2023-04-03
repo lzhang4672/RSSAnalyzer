@@ -118,7 +118,7 @@ class StockGraphAnalyzer:
                         other_freq = float(data[neighbour].connected_tickers[ticker])
                     else:
                         other_freq = 0.0
-                    # print(ticker, neighbour, connected[neighbour], other_freq)
+
                     self.graph.add_edge(ticker, neighbour, float(connected[neighbour]), other_freq)
 
         # add industry nodes
@@ -159,7 +159,7 @@ class StockGraphAnalyzer:
                 best, best_sentiment = neighbour, neighbour.sentiment
         return best
 
-    def _run_pagerank_algorithm(self, depth: Optional[int]) -> None:
+    def _run_pagerank_algorithm(self, depth: int = 1) -> None:
         """
         Returns a dictionary mapping a node (represented by its name or ticker) to it's pagerank score.
         Pagerank algorithm based on the simple version from wikipedia:
@@ -228,8 +228,9 @@ if __name__ == '__main__':
 
     pytest.main(['StockGraphAnalyzer.py', '-v'])
 
+    import python_ta
     python_ta.check_all(config={
-            'extra-imports': [],  # the names (strs) of imported modules
-            'allowed-io': [],  # the names (strs) of functions that call print/open/input
-            'max-line-length': 120
-        })
+        'extra-imports': ['Graph', 'StockInfo', 'StockVisualizer', 'collections', 'typing', 'dataclass'],
+        'allowed-io': [],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 120
+    })
