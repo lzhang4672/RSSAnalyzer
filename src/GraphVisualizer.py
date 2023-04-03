@@ -15,9 +15,9 @@ JSON_OPTIONS = """"
 const options = {
   "physics": {
     "forceAtlas2Based": {
-      "gravitationalConstant": -10,
-      "springLength": 400,
-      "springConstant": 0.1,
+      "gravitationalConstant": -20,
+      "springLength": 450,
+      "springConstant": 0.04,
       "damping": 1
     },
     "minVelocity": 0.01,
@@ -180,11 +180,12 @@ def get_node_visualization_title(node: CompanyNode | IndustryNode, analyzer: Sto
         ret += "[NodeRank]\n" + "Rank: " + str(page_rank_index + 1) + "\n" + "Score: " + str(node.get_pr_score()) + "\n"
     else:
         # the node is an industry node
+        page_rank_index = analyzer.ordered_pagerank_scores.index(node.name)
         ret = "[Combined Market Cap]\n" + str(node.industry_cap) + " Billion Dollars (USD)\n" \
               + "[Overall Sentiment]\n" + get_stock_sentiment_as_text(node.sentiment) + " (" \
               + str(node.sentiment) + ")\n" + "[Number Of Companies]\n" + \
               str(len(node.neighbours)) + "\n" + get_significant_neighbours_text(node) \
-                + get_ranking_sentiment_neighbours_text(node)
+                + get_ranking_sentiment_neighbours_text(node) + "[NodeRank]\n" + "Rank: " + str(page_rank_index + 1)
 
     return ret
 

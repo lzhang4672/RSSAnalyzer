@@ -2,7 +2,7 @@ from tkinter import *
 from python_ta.contracts import check_contracts
 import CSV
 import GUI
-from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
+from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings, SEARCH_FOCUS
 from StockGraphAnalyzer import StockGraphAnalyzer
 from GraphVisualizer import GraphVisualizer
 from StockInfo import get_tickers
@@ -181,26 +181,31 @@ class ScrapeLive:
     A class representing the Scraping Live pop-up Tk window.
 
     Instance Attributes:
-    - root is a TK window that will be created in the initializer
-    - search_bar is a SearchBar provided with a list of ticker names
-    - number_of_articles is a Entry that saves the user input of number of articles to process
-    - saved_name is a Entry that saves the user input of the name of the saved scraping process
-    - start_button is a Button to start the scraping
+        - tickers_presets: a dictionary containing the preset file name as the key and the parsed csv file as the key
+    Private Instance Attributes:
+        - _root: a TK window that will be created in the initializer
+        - _search_bar: a SearchBar provided with a list of ticker names
+        - _focus_search_bar: a SearchBar provided with a list of available focus options
+        - _number_of_articles: an Entry that saves the user input of number of articles to process
+        - _start_button: a Button to start the scraping
+        - _saved_name is a Entry that saves the user input of the name of the saved scraping process
     """
-    root: Tk
-    tickers: list[str]
-    search_bar: SearchBar
-    number_of_articles: Entry
+    _root: Tk
+    tickers_presets: dict[str, list[dict[str, str]]]
+    _search_bar: SearchBar
+    _focus_search_bar: SearchBar
+    _number_of_articles: Entry
     saved_name: Entry
-    start_button: Button
+    _start_button: Button
 
-    def __init__(self, data):
+    @check_contracts
+    def __init__(self, tickers_presets: dict[str, list[dict[str, str]]]):
         self.root = Tk()
         self.root.geometry('500x400')
         self.root.title("Scrape Live")
         self.root.update()
 
-        self.tickers = data
+        self.tickers_presets = tickers_presets
 
         label1 = Label(self.root, text="Number of articles per ticker", pady=20)
         label1.pack()
@@ -216,7 +221,9 @@ class ScrapeLive:
 
         self.root.update()
 
-        self.search_bar = SearchBar(self.root, "Tickers Selection", tickers)
+        self._search_bar = SearchBar(self.root, "Tickers Selection", list(tickers_presets.keys()))
+
+        self._focus_search_bar = SearchBar(self.root, "Focus Selection", list(SEARCH_FOCUS.keys()))
 
         self.start_button = Button(self.root, text="Start",
                                    command=self.generate_scraping_data)
@@ -226,82 +233,39 @@ class ScrapeLive:
 
         self.root.mainloop()
 
-    def generate_scraping_data(self):
+    @check_contracts
+    def generate_scraping_data(self) -> None:
         try:
             num_articles = int(self.number_of_articles.get())
         except ValueError:
-            print("did not enter valid number of articles")
+            print("Did not enter valid number of articles")
             return None
 
         name = self.saved_name.get()
-        ticker = self.search_bar.entry.get()
+        ticker_preset = self._search_bar.entry.get()
+        focus_preset = self._focus_search_bar.entry.get()
+        if name != '' and ticker_preset in self.tickers_presets and focus_preset in SEARCH_FOCUS:
+            ticker_rows = self.tickers_presets[ticker_preset]
+            tickers = []
+            # add tickers to the list
+            for row in ticker_rows:
+                tickers += [row['Ticker']]
+            # load settings
+            live_settings = StockAnalyzerSettings(id=name + '_cache.csv', articles_per_ticker=num_articles,
+                                                     use_cache=False,
+                                                     search_focus=focus_preset)
+            analyzer = StockAnalyzer(tickers, live_settings)
+            stock_graph_analyzer = StockGraphAnalyzer(analyzer)
+            # generate the graph
+            stock_graph_analyzer.generate_graph()
+            # run preprocessed algorithms
+            stock_graph_analyzer.run_preprocessed_algorithms()
+            graph_visualizer = GraphVisualizer(default_settings.id, stock_graph_analyzer)
+            graph_visualizer.show_graph()
 
-        if name != '':
-            generate_progress = ScrapeProgress()
-            # this should be redirected to the live pygame display. able to use name, ticker, and num articles as variables
         else:
-            print("did not enter valid name or ticker")
+            print("Did not enter valid name or ticker")
             return None
-
-
-class LoadPreset:
-    """
-    A class representing a display of the loaded results from scraping.
-
-    Instance Attributes:
-    - root is a Tk window that will be created in the initalizer
-    - search_bar is a SearchBar provided with company names
-    - load_button is a Button to display the loaded results
-    - display_company_details is a DisplayList of company details such as the
-    ticker symbol, industry, sentiment score...
-    - display_articles_analyzed is a DisplayList of the articles processed during scraping
-    - display_analyzed_data is a DisplayList of data processed during scraping
-    """
-    root: Tk
-    companies: list[str]
-    search_bar: SearchBar
-    load_button: Button
-    display_company_details: DisplayList
-    display_articles_analyzed: DisplayList
-    display_analyzed_data: DisplayList
-
-    def __init__(self, data):
-        self.root = Tk()
-        self.root.geometry('600x600')
-
-        self.companies = data  # should be a dictionary
-
-        self.search_bar = SearchBar(self.root, "Company", self.companies)
-
-        self.load_button = Button(self.root, text="Load", command=self.generate_listboxes)
-        self.load_button.place(in_=self.search_bar.entry, bordermode="outside",
-                               anchor="ne", relx=1.0, rely=0, x=40)
-
-        label1 = Label(self.root, text="Company Details", pady=20)
-        label1.pack()
-
-        self.display_company_details = DisplayList(self.root)
-
-        label2 = Label(self.root, text="Articles Analyzed", pady=20)
-        label2.pack()
-        self.display_articles_analyzed = DisplayList(self.root)
-
-        label3 = Label(self.root, text="Analyzed Data", pady=20)
-        label3.pack()
-        self.display_analyzed_data = DisplayList(self.root)
-
-    def generate_listboxes(self):
-        """
-        Display listboxes after load_button has been clicked. If the company entered is not valid,
-        no results should be displayed.
-        """
-        self.display_company_details.listbox.insert(END, *self.companies)
-        # self.companies should be replaced with the results of company details from stock analyzer.py or sentiment analyzer.py in list[str]
-        self.display_articles_analyzed.listbox.insert(END, *self.companies)
-        # self.companies should be replaced with results of analyzed articles from stock analyzer.py or sentiment analyzer in list[str]
-        self.display_analyzed_data.listbox.insert(END, *self.companies)
-        # self.companies should be replaced with analyzed data from graph.py or stockgraphanalyzer.py in list[str]
-
 
 class MainMenu:
     """
@@ -326,35 +290,36 @@ class MainMenu:
     _preset_button: Button
     _scrape_button: Button
 
+    @check_contracts
     def __init__(self):
-        self.root = Tk()
-        self.root.geometry('500x300')
-        self.root.title("StocksConnectionAnalyzer")
-        self.root.update()
+        self._root = Tk()
+        self._root.geometry('500x300')
+        self._root.title("StocksConnectionAnalyzer")
+        self._root.update()
 
         self.cache_preset_data = get_file_names_from_path(SCRAPE_CACHE_ROOT)
         self.ticker_preset_data = get_live_ticker_presets()
 
-        self.search_bar = SearchBar(self.root, "Preset Selection", self.cache_preset_data)
+        self._search_bar = SearchBar(self._root, "Preset Selection", self.cache_preset_data)
 
-        self.preset_button = Button(self.root, text='Load Preset', command=self.load_preset)
-        self.scrape_button = Button(self.root, text='Scrape Live', command=self.scrape_live)
+        self._preset_button = Button(self._root, text='Load Preset', command=self.load_preset)
+        self._scrape_button = Button(self._root, text='Scrape Live', command=self.scrape_live)
 
-        self.root.update()
-        self.preset_button.place(in_=self.search_bar.entry, bordermode="inside",
+        self._root.update()
+        self._preset_button.place(in_=self._search_bar.entry, bordermode="inside",
                                  anchor="nw", relx=0.35, rely=1.0, y=110)
-        self.scrape_button.place(in_=self.preset_button, bordermode="outside",
+        self._scrape_button.place(in_=self._preset_button, bordermode="outside",
                                  anchor="nw", relx=0, rely=1.0, y=10)
 
-        self.root.update()
+        self._root.update()
 
-        self.root.mainloop()
+        self._root.mainloop()
 
     def load_preset(self):
         """
         If the entry is valid, then opens up the LoadPreset window.
         """
-        selected_item = self.search_bar.entry.get()
+        selected_item = self._search_bar.entry.get()
         if selected_item in self.cache_preset_data:
             # load settings
             default_settings = StockAnalyzerSettings(id=selected_item, articles_per_ticker=10,
@@ -374,8 +339,4 @@ class MainMenu:
         """
         If entry is valid, then opens up the ScrapeLive window.
         """
-        selected_item = self.search_bar.entry.get()
-        if selected_item != '':
-            ScrapeLive(self.ticker_data)
-        else:
-            print("did not input a valid stock name")
+        ScrapeLive(self.ticker_preset_data)
