@@ -173,7 +173,8 @@ class StockGraphAnalyzer:
         Preconditions:
             - the graph has already been generated
         """
-        for node in set(self.graph.nodes.values()):
+        all_nodes = set(self.graph.nodes.values())
+        for node in all_nodes:
             score = node.get_pr_score()
             if depth is not None:
                 linked_nodes = self._get_linked_nodes(node, depth)
