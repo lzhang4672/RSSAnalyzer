@@ -11,6 +11,21 @@ import os
 
 GRAPHS_STORAGE = '/graphs/'
 
+JSON_OPTIONS = """"
+const options = {
+  "physics": {
+    "forceAtlas2Based": {
+      "gravitationalConstant": -14,
+      "springLength": 330,
+      "springConstant": 0.1,
+      "damping": 1
+    },
+    "minVelocity": 0.01,
+    "maxVelocity": 100,
+    "solver": "forceAtlas2Based"
+  }
+}
+"""
 INDUSTRY_COLORS = {
     'Financial Services': '#a7bac4',
     'Pharmacy and Health Care': '#a485c9',
@@ -93,19 +108,19 @@ def get_industry_color(industry: str) -> str:
 @check_contracts
 def get_significant_neighbours_text(node: CompanyNode | IndustryNode) -> str:
     """Returns a string that displays significant neighbours to the node"""
-    n_neighbours = 4
+    n_neighbours = 3
     text = ""
     if type(node) == IndustryNode:
         # the node is an industry node so display more neighbours
-        n_neighbours = 6
-        text += "[Leading Companies]<br>"
+        n_neighbours = 5
+        text += "[Leading Companies]\n"
     else:
-        text += "[Top Competitors]<br>"
+        text += "[Related Entities]\n"
     significant_neighbours = node.get_ordered_neighbours()
     n_neighbours = min(len(significant_neighbours), n_neighbours)
     for i in range(n_neighbours):
         neighbour = significant_neighbours[i]
-        text += str(i) + ". " + neighbour.name + "<br>"
+        text += str(i + 1) + ". " + neighbour.name + "\n"
     return text
 
 
@@ -115,17 +130,17 @@ def get_node_visualization_title(node: CompanyNode | IndustryNode) -> str:
     """
     if type(node) == CompanyNode:
         # the node is a company node
-        return node.name + " (" + node.ticker + ")<br>" + "[Market Cap]<br>" + str(node.market_cap) + \
-                " Billion Dollars (USD)<br>" + "[Industry]<br>" + node.industry + "<br>" + "[Sentiment]<br>" \
+        return node.name + " (" + node.ticker + ")\n" + "[Market Cap]\n" + str(node.market_cap) + \
+                " Billion Dollars (USD)\n" + "[Industry]\n" + node.industry + "\n" + "[Sentiment]\n" \
                 + get_stock_sentiment_as_text(node.sentiment) + " (" \
-                + str(node.sentiment) + ")<br>" + "[Number Of Connected Companies]<br>" \
-                + str(len(node.neighbours)) + "<br>" + get_significant_neighbours_text(node)
+                + str(node.sentiment) + ")\n" + "[Number Of Connected Companies]\n" \
+                + str(len(node.neighbours)) + "\n" + get_significant_neighbours_text(node)
     else:
         # the node is an industry node
-        return "[Combined Market Cap]<br>" + str(node.industry_cap) + " Billion Dollars (USD)<br>" \
-               + "[Overall Sentiment]<br>" + get_stock_sentiment_as_text(node.sentiment) + " (" \
-                + str(node.sentiment) + ")<br>" + "[Number Of Companies]<br>" + \
-                str(len(node.neighbours)) + "<br>" + get_significant_neighbours_text(node)
+        return "[Combined Market Cap]\n" + str(node.industry_cap) + " Billion Dollars (USD)\n" \
+               + "[Overall Sentiment]\n" + get_stock_sentiment_as_text(node.sentiment) + " (" \
+                + str(node.sentiment) + ")\n" + "[Number Of Companies]\n" + \
+                str(len(node.neighbours)) + "\n" + get_significant_neighbours_text(node)
 
 @check_contracts
 def get_edge_visualization_title(edge: Edge) -> str:
@@ -135,8 +150,8 @@ def get_edge_visualization_title(edge: Edge) -> str:
     v_node = edge.v
     if type(u_node) == type(v_node) == CompanyNode:
         # both nodes are company nodes
-        return "[Connection Frequency]<br>" + u_node.name + "->" + v_node.name + ": " + str(edge.u_v_weight) \
-               + "<br>" + v_node.name + "->" + u_node.name + ": " + str(edge.v_u_weight) + "<br>"
+        return "[Connection Frequency]\n" + u_node.name + "->" + v_node.name + ": " + str(edge.u_v_weight) \
+               + "\n" + v_node.name + "->" + u_node.name + ": " + str(edge.v_u_weight) + "\n"
     else:
         industry_node, company_node, weighting, connection = None, None, 0, ''
         if type(v_node) == IndustryNode:
@@ -149,7 +164,7 @@ def get_edge_visualization_title(edge: Edge) -> str:
             industry_node = u_node
             company_node = v_node
             weighting = edge.u_v_weight
-        return "[Connection Influence]<br>" + industry_node.name + "->" + company_node.name + ": " + str(weighting)
+        return "[Connection Influence]\n" + industry_node.name + "->" + company_node.name + ": " + str(weighting)
 
 
 @check_contracts
@@ -280,6 +295,6 @@ class GraphVisualizer:
         self.graph = graph
         self._id = graph_id
         self.network = Network(height="750px", width="100%", bgcolor="#292d33", font_color='white')
-        self.network.toggle_physics(True)
+        self.network.set_options(JSON_OPTIONS)
         # build the visualization
         self._build_visualization()

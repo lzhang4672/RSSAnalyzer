@@ -51,19 +51,19 @@ def get_stock_sentiment_as_text(sentiment: float) -> str:
         - -10.0 <= sentiment <= 10.0
     """
     if sentiment <= -5.0:
-        return "extremely bearish"
+        return "Extremely Bearish"
     elif -5.0 < sentiment < -2.5:
-        return "bearish"
+        return "Bearish"
     elif -2.5 <= sentiment <= -0.5:
-        return "slightly bearish"
+        return "Slightly Bearish"
     elif -0.5 < sentiment < 0.5:
-        return "neutral"
+        return "Neutral"
     elif 0.5 <= sentiment <= 2.5:
-        return "slightly bullish"
+        return "Slightly Bullish"
     elif 2.5 < sentiment < 5.0:
-        return "bullish"
+        return "Bullish"
     else:
-        return "extremely bullish"
+        return "Extremely Bullish"
 
 
 def get_info_from_ticker(ticker: str) -> dict[str, str] | None:
