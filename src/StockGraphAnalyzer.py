@@ -1,5 +1,16 @@
 """
-File for graphs generated based on a stock and functions related to navigatign the graph
+File for graphs generated based on a stock and functions related to navigating the graph
+
+Copyright and Usage Information
+===============================
+
+This file is provided solely for the personal and private use of TAs and professors
+ at the University of Toronto St. George campus. All forms of
+distribution of this code, whether as given or with any changes, are
+expressly prohibited. For more information on copyright for CSC111 materials,
+please consult the Course Syllabus.
+
+This file is Copyright (c) 2023 Mark Zhang, Li Zhang and Luke Zhang
 """
 from Graph import Graph, CompanyNode, IndustryNode, Edge, Node
 from StockAnalyzer import StockAnalyzer
@@ -8,6 +19,7 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Optional
 
+
 @dataclass
 class IndustryData:
     """
@@ -15,12 +27,14 @@ class IndustryData:
 
     Instance Attributes:
         - tickers: a list containing all the tickers that fall under this industry
+        - sentiment: a list containing weighted sentiment of each
         - market_cap: a list containing all the market cap values for the ticker
         - industry_cap: the total industry cap, calculated by the sum of all market caps of the tickers
 
     Representations Invariants:
-        - tickers list corresponds to market cap by index, ie. at the i-th index, the i-th index in market_cap
-        is the market cap for the i-th ticker in tickers
+        - self.tickers list corresponds to self.sentiment and self.market_cap by index,
+        ie. at the i-th index, the i-th index in sentiment is the sentiment weight for the i-th ticker and
+        the i-th index in market_cap is the market cap for the i-th ticker in tickers
     """
     tickers: list[str]
     sentiment: list[float]
@@ -38,6 +52,9 @@ class StockGraphAnalyzer:
         - pagerank_scores: a dictionary with the pagerank score correspodning to the CompanyNode
         - ordered_node_sentiment_scores: a list containing the ordered sentiment tickers
         - ordered_pagerank_scores: a list containing the ordered pagerank tickers
+
+    Representation Invariants:
+        - len(self.graph.nodes) == len(self.pagerank_scores)
     """
     graph: Graph
     analyzer: StockAnalyzer
@@ -54,7 +71,7 @@ class StockGraphAnalyzer:
         """
         Generates the graph based on data from self.analyzer
         """
-        tickers = self.analyzer.tickers
+        all_tickers = self.analyzer.tickers
         data = self.analyzer.analyzed_data
         industries = {}
 
@@ -63,7 +80,7 @@ class StockGraphAnalyzer:
         #     Essentially, StockAnalyzeData.primary_articles_data stores a list of tuples corresponding to
         #     (url, sentiment from that url), so this private function will calculate average overall sentiment
         #     based off of a StockAnalyzeData object
-        for ticker in tickers:
+        for ticker in all_tickers:
             if ticker in data:
                 ticker_analyzed_data = data[ticker]
                 ticker_stock = ticker_analyzed_data.stock
@@ -93,7 +110,7 @@ class StockGraphAnalyzer:
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
         created_edges = set()
-        for ticker in tickers:
+        for ticker in all_tickers:
             connected = data[ticker].connected_tickers
             for neighbour in connected:
                 if (ticker, neighbour) not in created_edges and (neighbour, ticker) not in created_edges:
@@ -123,11 +140,14 @@ class StockGraphAnalyzer:
             sorted([node for node in all_nodes], key=lambda sort_node: self.graph.nodes[sort_node].sentiment,
                    reverse=True)
 
-
     def get_best_neighbour(self, node: Node) -> Node | None:
         """
         Returns the best neighbouring node to the node given.
         If the node is not connected to any other nodes, or all connected nodes have a lower sentiment, returns None
+
+        Preconditions:
+            - the graph has already been constructed (otherwise, this function is guaranteed to return None since the
+            nodes won't have neighbours)
         """
         if len(node.neighbour) == 0:
             return None
@@ -149,10 +169,12 @@ class StockGraphAnalyzer:
         suppose we know A and B are connected, but A is ONLY connected to B, whereas B is connected to other nodes
         other than A. In pagerank algorithm, B would be MORE important to A (since it is A's ONLY connection), but A
         is not as important to B.
+
+        Preconditions:
+            - the graph has already been generated
         """
         for node in set(self.graph.nodes.values()):
             score = node.get_pr_score()
-            print(node, score)
             if depth is not None:
                 linked_nodes = self._get_linked_nodes(node, depth)
             else:
@@ -161,7 +183,7 @@ class StockGraphAnalyzer:
                 if linked_node in self.pagerank_scores:
                     self.pagerank_scores[linked_node] += score
                 else:
-                    self.pagerank_scores[linked_node] = 0
+                    self.pagerank_scores[linked_node] = score
         # store ordered stocks based on pagerank
         all_nodes = set(self.pagerank_scores.keys())
         self.ordered_pagerank_scores = \
@@ -177,6 +199,9 @@ class StockGraphAnalyzer:
         """
         Returns all nodes connected to given node, not in any particular order
         Uses BFS with depth, -> gets the connected nodes within the depth parameter away.
+
+        Preconditions:
+            - the graph has already been generated
         """
         queue = deque([given_node])
         visited = {given_node.get_as_key()}
@@ -197,7 +222,7 @@ if __name__ == '__main__':
     from StockAnalyzer import StockAnalyzer, StockAnalyzerSettings
 
     default_settings = StockAnalyzerSettings(id='all_tickers_10_articles', articles_per_ticker=10, use_cache=True,
-                                         search_focus='Stock')
+                                             search_focus='Stock')
     tickers = get_tickers()
     analyzer = StockAnalyzer(tickers, default_settings)
 
