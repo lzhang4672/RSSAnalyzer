@@ -197,3 +197,17 @@ def get_sentiment_for_article(main_stock: Stock, news_article: NewsArticle) -> A
     for stock in sentiment_data:
         sentiment_data[stock] *= 0.8
     return ArticleSentimentData(main_sentiment_score=main_stock_score, other_sentiment_scores=sentiment_data)
+
+if __name__ == '__main__':
+    import doctest
+    import python_ta
+
+    doctest.testmod(verbose=True)
+
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'extra-imports': ['__future__', 'typing', 'openai', 'openai.error', 'nltk.sentiment', 'transformers', 'nltk.corpus',
+                          'NewsScraper', 'dataclasses', 'ast', 'time', 'random', 'StockInfo', 'nltk'],
+        'allowed-io': ['NewsScraper.scrape_articles'],
+        'max-nested-blocks': 10
+    })

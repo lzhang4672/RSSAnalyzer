@@ -250,4 +250,18 @@ class Graph:
         u, v = edge.u.name, edge.v.name
         self.nodes[u].edges.remove(edge)
         self.nodes[v].edges.remove(edge)
-        self.graph.edges.remove(edge)
+        self.edges.remove(edge)
+
+
+if __name__ == '__main__':
+    import doctest
+    import python_ta
+
+    doctest.testmod(verbose=True)
+
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'extra-imports': [],
+        'allowed-io': [],
+        'max-nested-blocks': 10
+    })

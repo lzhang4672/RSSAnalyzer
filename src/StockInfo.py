@@ -106,3 +106,17 @@ def get_tickers_and_names() -> tuple[set, set]:
         symbols.add(element['Symbol'])
         names.add(element['Name'].upper())
     return symbols, names
+
+
+if __name__ == '__main__':
+    import doctest
+    import python_ta
+
+    doctest.testmod(verbose=True)
+
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'extra-imports': ['dataclasses', 'csv', 'CSV', 'typing'],
+        'allowed-io': [],
+        'max-nested-blocks': 10
+    })

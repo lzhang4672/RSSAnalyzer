@@ -229,7 +229,10 @@ if __name__ == '__main__':
     pytest.main(['StockGraphAnalyzer.py', '-v'])
 
     python_ta.check_all(config={
-            'extra-imports': [],  # the names (strs) of imported modules
-            'allowed-io': [],  # the names (strs) of functions that call print/open/input
+            'extra-imports': ['Graph', 'StockAnalyzer', 'StockInfo', 'dataclasses', 'typing'],
+            'allowed-io': ['StockAnalyzer._save_cache',
+                       'StockAnalyzer._analyze_stock',
+                       'StockAnalyzer._build_data',
+                       'StockAnalyzer.__init__'],
             'max-line-length': 120
         })

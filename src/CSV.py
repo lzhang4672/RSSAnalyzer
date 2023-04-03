@@ -31,12 +31,16 @@ def write_to_file(file_name: str, fields: list[str], rows: list[dict[str, Any]])
         for row in rows:
             writer.writerow(row)
 
-def csv_updater(file: str, new_ticker: dict):
-    """Adds new ticker to the end of the csv file.
-    Instance Atttributes:
-    - new_ticker: dictionary with keys as the attribute of the ticker, and the corresponding values are
-    values of the ticker attribute. must be in the order: symbol, name,  industry, market cap"""
-    with open(file, 'a', newline='') as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=field_names)
-        writer.writerow(new_ticker)
-        csv_file.close()
+
+if __name__ == '__main__':
+    import doctest
+    import python_ta
+
+    doctest.testmod(verbose=True)
+
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'extra-imports': ['csv', 'os', 'typing'],
+        'allowed-io': [],
+        'max-nested-blocks': 10
+    })

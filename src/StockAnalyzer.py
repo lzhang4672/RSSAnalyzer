@@ -389,3 +389,17 @@ class StockAnalyzer:
                 linking_sentiment = _get_median_sentiment_score(analyze_data.linking_articles_data)
             # get sentiment value from combining linking sentiment and primary sentiment
             analyze_data.stock.sentiment = (primary_sentiment + linking_sentiment) / 2
+
+if __name__ == '__main__':
+    import doctest
+    import python_ta
+
+    doctest.testmod(verbose=True)
+
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'extra-imports': ['__future__', 'typing', 'dataclasses', 'CSV', 'StockInfo', 'NewsScraper', 'Sentiment',
+                          'StockInfo', 'time', 'ast', 'random', 'os'],
+        'allowed-io': ['NewsScraper.scrape_articles'],
+        'max-nested-blocks': 10
+    })

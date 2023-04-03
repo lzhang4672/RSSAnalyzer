@@ -223,5 +223,13 @@ class NewsScraper:
 
 if __name__ == '__main__':
     import doctest
+    import python_ta
 
     doctest.testmod(verbose=True)
+
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'extra-imports': [],
+        'allowed-io': [],
+        'max-nested-blocks': 10
+    })

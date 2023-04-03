@@ -352,3 +352,18 @@ class GraphVisualizer:
         self.network.set_options(JSON_OPTIONS)
         # build the visualization
         self._build_visualization()
+
+
+if __name__ == '__main__':
+    import doctest
+    import python_ta
+
+    doctest.testmod(verbose=True)
+
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'extra-imports': ['StockGraphAnalyzer', 'Graph', 'dataclasses', 'pyvis.network', 'StockInfo',
+                          'webbrowser', 'os'],
+        'allowed-io': [],
+        'max-nested-blocks': 10
+    })

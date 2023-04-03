@@ -340,3 +340,20 @@ class MainMenu:
         If entry is valid, then opens up the ScrapeLive window.
         """
         ScrapeLive(self.ticker_preset_data)
+
+
+if __name__ == '__main__':
+    import doctest
+    import python_ta
+
+    doctest.testmod(verbose=True)
+
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'extra-imports': ['tkinter', 'CSV', 'GUI', 'StockAnalyzer', 'StockGraphAnalyzer', 'StockInfo', 'os'],
+        'allowed-io': ['StockAnalyzer._save_cache',
+                       'StockAnalyzer._analyze_stock',
+                       'StockAnalyzer._build_data',
+                       'StockAnalyzer.__init__'],
+        'max-nested-blocks': 10
+    })
