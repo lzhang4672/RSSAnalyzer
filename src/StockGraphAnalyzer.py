@@ -23,6 +23,7 @@ class IndustryData:
         is the market cap for the i-th ticker in tickers
     """
     tickers: list[str]
+    sentiment: list[float]
     market_cap: list[float]
     industry_cap: float
 
@@ -75,10 +76,13 @@ class StockGraphAnalyzer:
                 # industry based on the market cap
                 if ticker_stock.industry not in industries:
                     industries[ticker_stock.industry] = IndustryData(tickers=[ticker],
-                                                                     sentiment=[new_node.market_cap],
-                                                                     market_cap=new_node.market_cap)
+                                                                     sentiment=[new_node.sentiment *
+                                                                                new_node.market_cap],
+                                                                     market_cap=[new_node.market_cap],
+                                                                     industry_cap=new_node.market_cap)
                 else:
                     industries[ticker_stock.industry].tickers.append(ticker)
+                    industries[ticker_stock.industry].sentiment.append(new_node.sentiment * new_node.market_cap)
                     industries[ticker_stock.industry].market_cap.append(new_node.market_cap)
                     industries[ticker_stock.industry].industry_cap += new_node.market_cap
 
