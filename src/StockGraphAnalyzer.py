@@ -12,10 +12,19 @@ from typing import Optional
 class IndustryData:
     """
     Dataclass to keep track of temporary data for an IndustryNode
+
+    Instance Attributes:
+        - tickers: a list containing all the tickers that fall under this industry
+        - market_cap: a list containing all the market cap values for the ticker
+        - industry_cap: the total industry cap, calculated by the sum of all market caps of the tickers
+
+    Representations Invariants:
+        - tickers list corresponds to market cap by index, ie. at the i-th index, the i-th index in market_cap
+        is the market cap for the i-th ticker in tickers
     """
     tickers: list[str]
-    sentiment: list[float]
-    market_cap: float
+    market_cap: list[float]
+    industry_cap: float
 
 
 class StockGraphAnalyzer:
@@ -66,13 +75,12 @@ class StockGraphAnalyzer:
                 # industry based on the market cap
                 if ticker_stock.industry not in industries:
                     industries[ticker_stock.industry] = IndustryData(tickers=[ticker],
-                                                                     sentiment=[
-                                                                         new_node.sentiment * new_node.market_cap],
+                                                                     sentiment=[new_node.market_cap],
                                                                      market_cap=new_node.market_cap)
                 else:
                     industries[ticker_stock.industry].tickers.append(ticker)
-                    industries[ticker_stock.industry].sentiment.append(new_node.sentiment * new_node.market_cap)
-                    industries[ticker_stock.industry].market_cap += new_node.market_cap
+                    industries[ticker_stock.industry].market_cap.append(new_node.market_cap)
+                    industries[ticker_stock.industry].industry_cap += new_node.market_cap
 
         # add edge to neighbouring nodes; weigh the edges based on frequency
         created_edges = set()
@@ -90,13 +98,13 @@ class StockGraphAnalyzer:
         # add industry nodes
         for industry in industries:
             values = industries[industry]
-            sentiment = sum(values.sentiment) / values.market_cap
-            new_node = IndustryNode(industry, values.market_cap, sentiment)
+            sentiment = sum(values.sentiment) / values.industry_cap
+            new_node = IndustryNode(industry, values.industry_cap, sentiment)
             self.graph.add_industry_node(new_node)
             # add edges to industry node (connect to tickers)
             # edge weight based on market cap / total market cap (how big of a % does the ticker hold)
             for index in range(len(values.tickers)):
-                ticker, weight = values.tickers[index], values.sentiment[index] / values.market_cap
+                ticker, weight = values.tickers[index], values.market_cap[index] / values.industry_cap
                 # from ticker back to industry, the weight will be 0
                 self.graph.add_edge(industry, ticker, weight, 0.0)
 
@@ -117,8 +125,14 @@ class StockGraphAnalyzer:
 
     def update_pagerank(self, depth: Optional[int]) -> dict[str, float]:
         """
+        Returns a dictionary mapping a node (represented by its name or ticker) to it's pagerank score.
         Pagerank algorithm based on the simple version from wikipedia:
         https://en.wikipedia.org/wiki/PageRank#Simplified_algorithm
+        In a nutshell, this algorithm gives the importance of nodes through determining how many "other" connections
+        the nodes have. Consider arbitrary nodes A and B inside the graph, and suppose they are connected. Also,
+        suppose we know A and B are connected, but A is ONLY connected to B, whereas B is connected to other nodes
+        other than A. In pagerank algorithm, B would be MORE important to A (since it is A's ONLY connection), but A
+        is not as important to B.
         """
         for node in set(self.graph.nodes.values()):
             score = node.get_pr_score()
