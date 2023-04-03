@@ -5,21 +5,19 @@ Copyright and Usage Information
 ===============================
 
 This file is provided solely for the personal and private use of TAs and professors
-taking CSC111 at the University of Toronto St. George campus. All forms of
+ at the University of Toronto St. George campus. All forms of
 distribution of this code, whether as given or with any changes, are
 expressly prohibited. For more information on copyright for CSC111 materials,
-please consult our Course Syllabus.
+please consult the Course Syllabus.
 
 This file is Copyright (c) 2023 Mark Zhang, Li Zhang and Luke Zhang
 """
 from __future__ import annotations
 from python_ta.contracts import check_contracts
 
-
 from typing import Any
 
 
-#@check_contracts
 class Node:
     """
     Abstract class for all nodes in the graph
@@ -45,9 +43,19 @@ class Node:
         self.sentiment = sentiment
 
     def get_as_key(self):
+        """
+        Abstract method for getting the name or ticker of this node, because how the node is stored inside Graph's
+        node attribute is dependent on whether node is a CompanyNode or IndustryNode
+        """
         raise NotImplementedError
 
     def get_pr_score(self):
+        """
+        Returns the "outgoing" score of this node, basically the score that other nodes will add to their pagerank
+        score.
+        This is calculated by summing all the weights of the edges from this node to other nodes, divided by all
+        the edges this node has.
+        """
         score = 0
         for edge in self.edges:
             if edge.u is self:
@@ -79,8 +87,6 @@ class Node:
         return sorted(self.neighbours, key=lambda sort_node: sort_node.sentiment)
 
 
-
-#@check_contracts
 class CompanyNode(Node):
     """
     A class representing a company/stock. CompanyNode stores the associated industry it falls under
@@ -110,11 +116,13 @@ class CompanyNode(Node):
     def __str__(self) -> str:
         return f'<{self.name}: ticker={self.ticker},sen={self.sentiment},industry={self.industry}>'
 
-    def get_as_key(self):
+    def get_as_key(self) -> str:
+        """
+        Returns the string representation of how the node is stored (as a key) inside of Graph's nodes attribute
+        """
         return self.ticker
 
 
-#@check_contracts
 class IndustryNode(Node):
     """
     A class representing an industry. IndustryNodes may have multiple CompanyNodes connected to it, given that the
@@ -138,8 +146,12 @@ class IndustryNode(Node):
     def __str__(self) -> str:
         return f'<{self.name}:cap={self.industry_cap},sen={self.sentiment}>'
 
-    def get_as_key(self):
+    def get_as_key(self) -> str:
+        """
+        Returns the string representation of how the node is stored (as a key) inside of Graph's nodes attribute
+        """
         return self.name
+
 
 class Edge:
     """
@@ -166,18 +178,23 @@ class Edge:
         self.v_u_weight = v_u_weight
 
     def get_average_weight(self):
+        """
+        Returns the average weight between the edge's u to v weight and v to u weight
+        """
         return (self.u_v_weight + self.v_u_weight) / 2
 
     def __str__(self):
         return f'{self.u} - {self.v}'
 
-#@check_contracts
+
+# @check_contracts
 class Graph:
     """
     A class representing a graph that will store industry and company nodes
 
     Instance Attributes:
         - nodes: a dictionary mapping the node name to the node object
+        - edges: a set containing all the edges in the graph
     """
     nodes: dict[str, Node]
     edges: set[Edge]
@@ -221,11 +238,14 @@ class Graph:
 
         Raise ValueError if the node with the given name is not in this graph.
         """
-        return self.nodes[name]
+        if name in self.nodes:
+            return self.nodes[name]
+        else:
+            raise ValueError
 
     def remove_edge(self, edge: Edge) -> None:
         """
-        Removes edge from the graph
+        Removes the specified edge from the graph
         """
         u, v = edge.u.name, edge.v.name
         self.nodes[u].edges.remove(edge)
