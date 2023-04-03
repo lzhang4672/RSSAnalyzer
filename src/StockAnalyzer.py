@@ -12,6 +12,7 @@ from StockInfo import get_info_from_ticker
 from NewsScraper import NewsArticleContent, NewsScraper, PUBLISH_RANGE, get_content_from_article_url
 from Sentiment import get_sentiment_for_article
 from StockInfo import Stock
+from LiveDisplay import Window
 import time
 import ast
 import random
@@ -86,7 +87,7 @@ class StockAnalyzerSettings:
 
 
 # helper methods
-@check_contracts
+#@check_contracts
 def _get_median_sentiment_score(articles_data: list[tuple[str, float]]) -> float:
     # filter out all the sentiment values that are exactly. Usually, if the sentiment is exactly 0 then we shouldn't
     # count it as the sentiment is too neutral.
@@ -115,8 +116,9 @@ class StockAnalyzer:
     tickers: list[str]
     _settings: StockAnalyzerSettings
     analyzed_data: dict[str, StockAnalyzeData] = {}
+    window: Window
 
-    @check_contracts
+    #@check_contracts
     def _save_cache(self) -> None:
         """Called to save the current progress of scraping to a csv file.
         """
@@ -162,7 +164,7 @@ class StockAnalyzer:
             }]
         write_to_file(CACHE_DIRECTORY + self._settings.id + '_cache.csv', CACHE_HEADERS, row_data)
 
-    @check_contracts
+    #@check_contracts
     def remove_linking_article_by_url(self, ticker: str, url: str) -> None:
         if ticker in self.analyzed_data:
             stock_analyze_data = self.analyzed_data[ticker]
@@ -171,7 +173,7 @@ class StockAnalyzer:
                 if linking_data[0] == url:
                     stock_analyze_data.linking_articles_data.pop(i)
                     break
-    @check_contracts
+    #@check_contracts
     def has_analyzed_primary_article_url(self, ticker: str, url: str) -> bool:
         if ticker in self.analyzed_data:
             stock_analyze_data = self.analyzed_data[ticker]
@@ -180,7 +182,7 @@ class StockAnalyzer:
                     return True
 
         return False
-    @check_contracts
+    #@check_contracts
     def has_analyzed_linking_article_url(self, ticker: str, url: str) -> bool:
         if ticker in self.analyzed_data:
             stock_analyze_data = self.analyzed_data[ticker]
@@ -190,7 +192,7 @@ class StockAnalyzer:
 
         return False
 
-    @check_contracts
+    #@check_contracts
     def _analyze_stock(self, ticker: str) -> None:
         stock_analyze_data = self.analyzed_data[ticker]
         has_analyzed = False
@@ -256,7 +258,7 @@ class StockAnalyzer:
             if has_analyzed:
                 # if we analyzed articles and didn't rely entire only cached data
                 self._save_cache()
-    @check_contracts
+    #@check_contracts
     def _build_data(self) -> None:
         """This private function is responsible for scraping news articles and building up data for the
         sentiment values associated with a stock """

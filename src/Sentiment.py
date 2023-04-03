@@ -118,7 +118,7 @@ def get_complex_phrase_sentiment_score(passage: str) -> dict[str, float]:
 def get_sentiment_single(passage: str) -> float:
     """
     Returns the sentiment score for a passage ASSUMING THERE IS ONLY ONE STOCK MENTIONED IN THE PASSAGE
-    Uses nltk's VADER
+    Uses nltk's VADER and FinBert
 
     Preconditions:
         - there is only ONE stock in the passage
@@ -127,7 +127,6 @@ def get_sentiment_single(passage: str) -> float:
     # removing this "fluff" may improve accuracy, but also may not, hence this function will average it
     stop_words = stopwords.words("english")
     cleaned_text = ' '.join([word for word in passage.split() if word not in stop_words])
-
     # return sentiment of the passage which is the average compound scores for the raw passage and the cleaned one
     cleaned_score = sentiment_analyzer.polarity_scores(cleaned_text)['compound']
     raw_score = sentiment_analyzer.polarity_scores(passage)['compound']
@@ -136,6 +135,8 @@ def get_sentiment_single(passage: str) -> float:
         # make sure the sentence isn't too long for finbert
         finbert_score = FINBERT_LABELS[finbert_get_sentiment(passage)[0]['label']]
     # calculate overall sentiment score while siding more with finbert's score as its more accurate
+    print(vader_score)
+    print(finbert_score)
     sentiment_score = finbert_score * 0.65 + vader_score * 0.35
     return sentiment_score
 

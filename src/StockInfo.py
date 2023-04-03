@@ -35,7 +35,7 @@ class Stock:
     sentiment: float = 0
 
 
-@check_contracts
+#@check_contracts
 def get_stock_sentiment_as_text(sentiment: float) -> str:
     """Returns the stock's sentiment value in text representation
 

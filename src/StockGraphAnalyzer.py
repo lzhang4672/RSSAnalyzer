@@ -35,10 +35,15 @@ class StockGraphAnalyzer:
     Instance Attributes:
         - graph: a graph object representing the associated graph for a stock
         - analyzer: a StockAnalyzer object that will hold the data needed to generate the graph's edges and nodes
+        - pagerank_scores: a dictionary with the pagerank score correspodning to the CompanyNode
+        - ordered_node_sentiment_scores: a list containing the ordered sentiment tickers
+        - ordered_pagerank_scores: a list containing the ordered pagerank tickers
     """
     graph: Graph
     analyzer: StockAnalyzer
-    pagerank_scores: dict
+    pagerank_scores: dict[CompanyNode, float]
+    ordered_pagerank_scores: list[str] = []
+    ordered_node_sentiment_scores: list[str] = []
 
     def __init__(self, stock_analyzer: StockAnalyzer) -> None:
         self.graph = Graph()
@@ -112,6 +117,13 @@ class StockGraphAnalyzer:
                 # from ticker back to industry, the weight will be 0
                 self.graph.add_edge(industry, ticker, weight, 0.0)
 
+        # store a ranking of highest sentiment to lowest
+        all_nodes = self.graph.nodes
+        self.ordered_node_sentiment_scores = \
+            sorted([node for node in all_nodes], key=lambda sort_node: self.graph.nodes[sort_node].sentiment,
+                   reverse=True)
+
+
     def get_best_neighbour(self, node: Node) -> Node | None:
         """
         Returns the best neighbouring node to the node given.
@@ -127,7 +139,7 @@ class StockGraphAnalyzer:
                 best, best_sentiment = neighbour, neighbour.sentiment
         return best
 
-    def update_pagerank(self, depth: Optional[int]) -> dict[str, float]:
+    def _run_pagerank_algorithm(self, depth: Optional[int]) -> None:
         """
         Returns a dictionary mapping a node (represented by its name or ticker) to it's pagerank score.
         Pagerank algorithm based on the simple version from wikipedia:
@@ -140,17 +152,26 @@ class StockGraphAnalyzer:
         """
         for node in set(self.graph.nodes.values()):
             score = node.get_pr_score()
-            # print(node, score)
+            print(node, score)
             if depth is not None:
                 linked_nodes = self._get_linked_nodes(node, depth)
             else:
                 linked_nodes = self._get_linked_nodes(node, 1)
             for linked_node in linked_nodes:
-                if linked_node in pagerank_scores:
+                if linked_node in self.pagerank_scores:
                     self.pagerank_scores[linked_node] += score
                 else:
                     self.pagerank_scores[linked_node] = 0
-        return self.pagerank_scores
+        # store ordered stocks based on pagerank
+        all_nodes = set(self.pagerank_scores.keys())
+        self.ordered_pagerank_scores = \
+            sorted([node for node in all_nodes], key=lambda sort_node: self.pagerank_scores[sort_node], reverse=True)
+
+    def run_preprocessed_algorithms(self) -> None:
+        """
+        Runs all the preprocessed algorithms associated with the graph
+        """
+        self._run_pagerank_algorithm(8)
 
     def _get_linked_nodes(self, given_node: Node, depth: int) -> set[str]:
         """
@@ -169,13 +190,6 @@ class StockGraphAnalyzer:
                         visited.add(neighbour.get_as_key())
             depth_counter += 1
         return visited
-
-    def get_most_popular_nodes(self) -> list[Node]:
-        """
-        Returns a list of nodes that sorts the nodes with highest pagerank scores
-        """
-        all_nodes = set(self.pagerank_scores.keys())
-        return sorted([node for node in all_nodes], key=lambda node: pagerank_scores[node], reverse=True)
 
 
 # for testing

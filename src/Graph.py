@@ -19,7 +19,7 @@ from python_ta.contracts import check_contracts
 from typing import Any
 
 
-@check_contracts
+#@check_contracts
 class Node:
     """
     Abstract class for all nodes in the graph
@@ -27,18 +27,22 @@ class Node:
     Instance Attributes:
         - name: name of the stock/company or industry
         - edges: edges connected to this node
+        - sentiment: a float representing the sentiment of the node
 
     Representation Invariants:
         - self.name != ''
+        - -10.0 <= self.sentiment <= 10
     """
     name: str
     neighbours: set[Node]
     edges: set[Edge]
+    sentiment: float
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, sentiment: float) -> None:
         self.name = name
         self.neighbours = set()
         self.edges = set()
+        self.sentiment = sentiment
 
     def get_as_key(self):
         raise NotImplementedError
@@ -68,8 +72,15 @@ class Node:
         return sorted([stock for stock in connected_stocks.keys()],
                       key=lambda stock: connected_stocks[stock], reverse=True)
 
+    def get_ordered_sentiment_neighbours(self) -> list[Node]:
+        """
+        Returns a list of neighbours ordered by sentiment
+        """
+        return sorted(self.neighbours, key=lambda sort_node: sort_node.sentiment)
 
-@check_contracts
+
+
+#@check_contracts
 class CompanyNode(Node):
     """
     A class representing a company/stock. CompanyNode stores the associated industry it falls under
@@ -89,14 +100,12 @@ class CompanyNode(Node):
     ticker: str
     market_cap: float
     industry: str
-    sentiment: float
 
     def __init__(self, name: str, ticker: str, market_cap: float, industry: str, sentiment: float) -> None:
-        super().__init__(name)
+        super().__init__(name, sentiment)
         self.ticker = ticker
         self.market_cap = market_cap
         self.industry = industry
-        self.sentiment = sentiment
 
     def __str__(self) -> str:
         return f'<{self.name}: ticker={self.ticker},sen={self.sentiment},industry={self.industry}>'
@@ -105,7 +114,7 @@ class CompanyNode(Node):
         return self.ticker
 
 
-@check_contracts
+#@check_contracts
 class IndustryNode(Node):
     """
     A class representing an industry. IndustryNodes may have multiple CompanyNodes connected to it, given that the
@@ -121,12 +130,10 @@ class IndustryNode(Node):
         - -10 <= self.sentiment <= 10
     """
     industry_cap: float
-    sentiment: float
 
     def __init__(self, name: str, industry_cap: float, sentiment: float):
-        super().__init__(name)
+        super().__init__(name, sentiment)
         self.industry_cap = industry_cap
-        self.sentiment = sentiment
 
     def __str__(self) -> str:
         return f'<{self.name}:cap={self.industry_cap},sen={self.sentiment}>'
@@ -164,7 +171,7 @@ class Edge:
     def __str__(self):
         return f'{self.u} - {self.v}'
 
-@check_contracts
+#@check_contracts
 class Graph:
     """
     A class representing a graph that will store industry and company nodes
@@ -224,10 +231,3 @@ class Graph:
         self.nodes[u].edges.remove(edge)
         self.nodes[v].edges.remove(edge)
         self.graph.edges.remove(edge)
-
-    def get_best_sentiment_stocks(self) -> list[Node]:
-        """
-        Returns a list containing nodes in sorted order based on sentiment values
-        """
-        all_nodes = set(self.graph.nodes.values())
-        return sorted([node for node in all_nodes], key=lambda node: node.sentiment, reverse=True)

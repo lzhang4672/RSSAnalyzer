@@ -39,8 +39,11 @@ def run_analysis() -> None:
     tickers = get_tickers()
     analyzer = StockAnalyzer(tickers, default_settings)
     stock_graph_analyzer = StockGraphAnalyzer(analyzer)
+    # generate the graph
     stock_graph_analyzer.generate_graph()
-    graph_visualizer = GraphVisualizer(default_settings.id, stock_graph_analyzer.graph)
+    # run preprocessed algorithms
+    stock_graph_analyzer.run_preprocessed_algorithms()
+    graph_visualizer = GraphVisualizer(default_settings.id, stock_graph_analyzer)
     graph_visualizer.show_graph()
 
 
