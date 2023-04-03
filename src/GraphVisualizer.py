@@ -1,13 +1,11 @@
 from python_ta.contracts import check_contracts
+from StockGraphAnalyzer import StockGraphAnalyzer
 from Graph import CompanyNode, IndustryNode, Edge, Graph
 from dataclasses import dataclass
 from pyvis.network import Network
 from StockInfo import get_stock_sentiment_as_text
 import webbrowser
 import os
-
-
-
 
 GRAPHS_STORAGE = '/graphs/'
 
@@ -16,8 +14,8 @@ const options = {
   "physics": {
     "forceAtlas2Based": {
       "gravitationalConstant": -14,
-      "springLength": 330,
-      "springConstant": 0.1,
+      "springLength": 600,
+      "springConstant": 0.15,
       "damping": 1
     },
     "minVelocity": 0.01,
@@ -50,6 +48,8 @@ INDUSTRY_COLORS = {
     'Telecommunications': '#fa48d3',
     'Default': '#7e9ebf'
 }
+
+
 # Data Classes
 @dataclass
 class NodeVisualizer:
@@ -75,6 +75,7 @@ class NodeVisualizer:
     title: str
     value: float
 
+
 @dataclass
 class EdgeVisualizer:
     """A data class that stores the information for visualizing an edge
@@ -96,8 +97,9 @@ class EdgeVisualizer:
     title: str
     color: str
 
+
 # top level functions
-@check_contracts
+# @check_contracts
 def get_industry_color(industry: str) -> str:
     """Returns the color associated with the industry, if no matches is found, a default color is returned
     """
@@ -105,7 +107,8 @@ def get_industry_color(industry: str) -> str:
         return INDUSTRY_COLORS[industry]
     return INDUSTRY_COLORS['Default']
 
-@check_contracts
+
+# @check_contracts
 def get_significant_neighbours_text(node: CompanyNode | IndustryNode) -> str:
     """Returns a string that displays significant neighbours to the node"""
     n_neighbours = 3
@@ -124,25 +127,66 @@ def get_significant_neighbours_text(node: CompanyNode | IndustryNode) -> str:
     return text
 
 
-@check_contracts
-def get_node_visualization_title(node: CompanyNode | IndustryNode) -> str:
+def get_ranking_sentiment_neighbours_text(node: CompanyNode | IndustryNode) -> str:
+    """Returns a string that displays highest and lowest sentiment neighbours to the node"""
+    n_neighbours = 3
+    text = ""
+    if type(node) == IndustryNode:
+        # the node is an industry node so display more neighbours
+        n_neighbours = 5
+    text += "[Lowest Connected Sentiment Entities]\n"
+    # get lowest sentiment companies
+    ordered_sentiment_neighbours = node.get_ordered_sentiment_neighbours()
+    n_neighbours = min(len(ordered_sentiment_neighbours), n_neighbours)
+    for i in range(n_neighbours):
+        neighbour = ordered_sentiment_neighbours[i]
+        text += str(i + 1) + ". " + neighbour.name + "\n"
+    text += "[Highest Connected Sentiment Entities]\n"
+    # get highest sentiment companies
+    ordered_sentiment_neighbours.reverse()
+    for i in range(n_neighbours):
+        neighbour = ordered_sentiment_neighbours[i]
+        text += str(i + 1) + ". " + neighbour.name + "\n"
+    return text
+
+# @check_contracts
+def get_node_visualization_title(node: CompanyNode | IndustryNode, analyzer: StockGraphAnalyzer) -> str:
     """Returns a string storing the information that should be displayed when a node is hovered upon
     """
     if type(node) == CompanyNode:
         # the node is a company node
-        return node.name + " (" + node.ticker + ")\n" + "[Market Cap]\n" + str(node.market_cap) + \
-                " Billion Dollars (USD)\n" + "[Industry]\n" + node.industry + "\n" + "[Sentiment]\n" \
-                + get_stock_sentiment_as_text(node.sentiment) + " (" \
-                + str(node.sentiment) + ")\n" + "[Number Of Connected Companies]\n" \
-                + str(len(node.neighbours)) + "\n" + get_significant_neighbours_text(node)
+        # add market cap info
+        ret = ""
+        ret += "===[BASIC INFO]===\n"
+        ret += node.name + " (" + node.ticker + ")\n" + "[Market Cap]\n" + str(node.market_cap) + "Billion Dollars (" \
+                                                                                                  "USD)\n "
+        # add connected companies info
+        ret += "[Number Of Connected Companies]\n" + str(len(node.neighbours)) + "\n" \
+               + get_significant_neighbours_text(node)
+        # add industry info
+        ret += "[Industry]\n" + node.industry + "\n" \
+            # add sentiment info
+        ret += "===[ANALYSIS INFO]===\n"
+        sentiment_rank_index = analyzer.ordered_node_sentiment_scores.index(node.ticker)
+        ret += "[Sentiment]\n" + get_stock_sentiment_as_text(node.sentiment) + " (" + str(node.sentiment) + ")\n"
+        ret += "Rank: " + str(sentiment_rank_index + 1) + "\n"
+        ret += get_ranking_sentiment_neighbours_text(node)
+        # add page ranking info
+        ret += "===[ADDITIONAL INFO]===\n"
+        page_rank_index = analyzer.ordered_pagerank_scores.index(node.ticker)
+        ret += "[NodeRank]\n" + "Rank: " + str(page_rank_index + 1) + "\n" + "Score: " + str(node.get_pr_score()) + "\n"
     else:
         # the node is an industry node
-        return "[Combined Market Cap]\n" + str(node.industry_cap) + " Billion Dollars (USD)\n" \
-               + "[Overall Sentiment]\n" + get_stock_sentiment_as_text(node.sentiment) + " (" \
-                + str(node.sentiment) + ")\n" + "[Number Of Companies]\n" + \
-                str(len(node.neighbours)) + "\n" + get_significant_neighbours_text(node)
+        ret = "[Combined Market Cap]\n" + str(node.industry_cap) + " Billion Dollars (USD)\n" \
+              + "[Overall Sentiment]\n" + get_stock_sentiment_as_text(node.sentiment) + " (" \
+              + str(node.sentiment) + ")\n" + "[Number Of Companies]\n" + \
+              str(len(node.neighbours)) + "\n" + get_significant_neighbours_text(node) \
+                + get_ranking_sentiment_neighbours_text(node)
 
-@check_contracts
+    return ret
+
+
+# @check_contracts
 def get_edge_visualization_title(edge: Edge) -> str:
     """Returns a string storing the information that should be displayed when an edge is hovered upon
     """
@@ -167,13 +211,14 @@ def get_edge_visualization_title(edge: Edge) -> str:
         return "[Connection Influence]\n" + industry_node.name + "->" + company_node.name + ": " + str(weighting)
 
 
-@check_contracts
+# @check_contracts
 class GraphVisualizer:
     """A class responsible for displaying the graph visualization of a graph object using pyvis
 
 
     Instance Attributes:
-        - graph: a graph object representing the graph to be visualized
+        - graph: a Graph object representing the graph to be visualized
+        - analyzer: a StockGraphAnalyzer object storing the analzed data of the graph
         - network: a pyvis network object that is used to build the visualized graph
     Private Instance Attributes:
         - _visualized_nodes: a dictionary where the key is a Node which corresponds to its NodeVisualizer object
@@ -182,15 +227,16 @@ class GraphVisualizer:
 
      """
     graph: Graph
+    analyzer: StockGraphAnalyzer
     _visualized_nodes: dict[CompanyNode | IndustryNode, NodeVisualizer] = {}
     _visualized_edges: list[EdgeVisualizer] = []
     _id: str
 
-    @check_contracts
+    # @check_contracts
     def _add_visualize_node(self, node: CompanyNode | IndustryNode) -> None:
         """Adds a node to be visualized"""
         if node not in self._visualized_nodes:
-            title, node_id = get_node_visualization_title(node), node.name
+            title, node_id = get_node_visualization_title(node, self.analyzer), node.name
             # the node is not added yet
             if type(node) == CompanyNode:
                 # the node is a company node
@@ -255,7 +301,7 @@ class GraphVisualizer:
             # the file exists so open the saved html file in the browser
             webbrowser.open_new_tab('file:///' + os.getcwd() + saved_file_name)
 
-    @check_contracts
+    # @check_contracts
     def _build_visualization(self) -> None:
         """Builds up the visualization objects and creates the html file that contains the visualization of the graph"""
         # add the nodes
@@ -285,16 +331,20 @@ class GraphVisualizer:
                 value=edge_visualization_data.value,
                 color=edge_visualization_data.color
             )
-        #create html page
+        # create html page
         self.network.show('.' + GRAPHS_STORAGE + self._id + "_graph.html")
 
-    @check_contracts
-    def __init__(self, graph_id: str, graph: Graph):
+    # @check_contracts
+    def __init__(self, graph_id: str, stock_graph_analyzer: StockGraphAnalyzer):
         """Intializes a GraphVisualizer object"""
         # intialize all attributes
-        self.graph = graph
+        self.analyzer = stock_graph_analyzer
+        self.graph = stock_graph_analyzer.graph
         self._id = graph_id
-        self.network = Network(height="750px", width="100%", bgcolor="#292d33", font_color='white')
+        # only include the filter menu if the dataset is small enough
+        include_select_menu = len(self.graph.nodes) <= 50
+        self.network = Network(height="1050px", width="100%", bgcolor="#292d33", font_color='white',
+                               select_menu=include_select_menu)
         self.network.set_options(JSON_OPTIONS)
         # build the visualization
         self._build_visualization()

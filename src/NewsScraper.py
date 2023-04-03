@@ -53,7 +53,7 @@ class NewsArticleContent:
     sentences: list[str]
 
 
-@check_contracts
+#@check_contracts
 def get_children_as_str(obj: bs4.element.Tag | bs4.element.NavigableString) -> str:
     """
     Helper method for get_texts_containing
@@ -75,7 +75,7 @@ def get_children_as_str(obj: bs4.element.Tag | bs4.element.NavigableString) -> s
         return cur_str
 
 
-@check_contracts
+#@check_contracts
 def remove_non_ascii(string: str) -> str:
     """
     Helper method for get_children_as_str, and for handling strings
@@ -88,7 +88,7 @@ def remove_non_ascii(string: str) -> str:
     return ''.join([i if ord(i) < 128 else '' for i in string])
 
 
-@check_contracts
+#@check_contracts
 def get_random_header_agent() -> str:
     """
     Provides a random choice from headers list (USER_AGENTS)
@@ -97,7 +97,7 @@ def get_random_header_agent() -> str:
     return random.choice(USER_AGENTS)
 
 
-@check_contracts
+#@check_contracts
 def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     """
     Returns a NewsArticleContentObject that contains the content for the article
@@ -137,7 +137,7 @@ def get_content_from_article_url(url: str) -> NewsArticleContent | None:
     )
 
 
-@check_contracts
+#@check_contracts
 class NewsScraper:
     """This class will handle the scraping process
 
@@ -157,7 +157,7 @@ class NewsScraper:
     articles_scraped: list[str]
     publish_range: str
 
-    @check_contracts
+    #@check_contracts
     def scrape_articles(self) -> bool:
         """Scrapes the specified amount of articles stated in self.number_of_articles
         Returns true of the scraping was successful, false otherwise.
@@ -198,14 +198,14 @@ class NewsScraper:
 
         return True
 
-    @check_contracts
+    #@check_contracts
     def get_articles(self) -> list[str]:
         """
         Returns the url of the articles scraped
         """
         return self.articles_scraped
 
-    @check_contracts
+    #@check_contracts
     def __init__(self, search_query: str, number_of_articles: int, publish_range: str):
         """
         Constructor for a NewsScraper object
