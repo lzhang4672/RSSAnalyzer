@@ -1,20 +1,25 @@
 import pygame
 
-
+# Initialize Pygame
 pygame.init()
 
-screen = pygame.display.set_mode((400, 300))
+# Set up the display
+size = (400, 300)
+screen = pygame.display.set_mode(size)
 pygame.display.set_caption("List Display")
 
-
+# Define the font and font size
 font = pygame.font.SysFont('Arial', 20)
 
+# Define the colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
+# Define the list
 my_list = ["Hello", "World"]
 
 
+# Define a function to display the list
 def display_list():
     screen.fill(WHITE)
     y = 50
@@ -25,30 +30,23 @@ def display_list():
     pygame.display.update()
 
 
+# Call the display_list function to initially display the list
 display_list()
 
-
-def add_to_list(item):
-    my_list.append(item)
-    display_list()
-
-
+# Main loop
 running = True
 while running:
+    # Check for events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            elif event.key == pygame.K_a:
+                # Add an item to the list
+                my_list.append("Item added")
+                display_list()
 
-    if pygame.display.get_active():
-        new_list = pygame.display.get_caption()[0]
-        if new_list != str(my_list):
-            display_list()
-
-
+# Quit Pygame
 pygame.quit()
-
-if __name__ == "__main__":
-    add_to_list("New item")
